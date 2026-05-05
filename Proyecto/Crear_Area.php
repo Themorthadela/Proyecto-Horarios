@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Crear Área</h1>
+
+    <form method="post">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre">
+
+        <input type="submit" name="enviar" value="Crear Área">
+        <input type="submit" name="mostrar" value="Mostrar Áreas">
+    </form>
+
+    <?php
+        include_once "Logica/Area.php";
+            $area = new Area();
+
+        if (isset($_POST['enviar'])) {
+            $area->setNombre($_POST['nombre']);
+            $area->AgregarArea();
+        }
+
+        if (isset($_POST['mostrar'])) {
+            $areas = $area->ListarAreas();
+                while ($a = $areas->fetch_assoc()) {
+                    echo "<p>" . $a['ID_A'] . " - " . $a['Nombre'] . "</p>";
+        }
+        }
+    ?>
+    
+</body>
+</html>
