@@ -6,7 +6,7 @@ class CursoBD extends Conexion {
     public function Agregar($nombre, $horas, $dias, $semanal, $activo) {
         $this->Conectar();
 
-        $sql = "INSERT INTO Curso (Nombre, Horas, Dias, HorasSe, Activo) 
+        $sql = "INSERT INTO Curso (Nombre, Horas, Dias, Semanal, Activo) 
             VALUES (?, ?, ?, ?, ?)";
         
         $stmt = $this->con->prepare($sql);
@@ -58,5 +58,5 @@ class CursoBD extends Conexion {
     return $resultado->fetch_assoc();
 }
 
-}
+}   
 ?>

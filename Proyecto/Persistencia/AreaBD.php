@@ -22,7 +22,7 @@ class AreaBD {
     }
 
     public function Listar() {
-        $sql = "SELECT ID_A, Nombre FROM Area";
+        $sql = "SELECT * FROM Area";
         $result = $this->con->query($sql);
         if (!$result) {
             die("Error al ejecutar la consulta: " . $this->con->error);

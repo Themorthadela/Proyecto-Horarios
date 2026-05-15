@@ -1,0 +1,149 @@
+@startuml
+
+' =====================
+' CLASES
+' =====================
+
+class Area {
+  ID_A : int
+  Nombre : string
+}
+
+class Usuario {
+  ID_U : int
+  Nombre : string
+  Apellido : string
+  Email : string
+  Contraseña : string
+  Activo : bool
+  Rol : Enum
+  
+  Rol ('Admin', 'Director', 'Secretaria', 'Docente', 'Usuario')
+}
+
+class Docente {
+  ID_D : int
+  ID_U : int
+  Grado : int
+  
+  ID_U (FK) ID_U Usuario
+}
+
+class Materia {
+  ID_M : int
+  Nombre : string
+  CargaHoraria : int
+  TipoSalon : enum 
+  Activo : bool
+  
+  TipoSalon ('Laboratorio','Aula','Taller')
+}
+
+class Curso {
+  ID_C : int
+  Nombre : string
+  Activo : bool
+}
+
+class Turno {
+  ID_H : int
+  ID_C : int
+  Turno : enum 
+
+  ID_C (FK) ID_C Curso
+  Turno ('Matutino','Vespertino','Nocturno')
+}
+
+class HorarioFinal {
+  ID_Hc : int
+  ID_C : int
+  ID_D : int
+  ID_M : int
+  Año : date
+  Dia : int
+  Hora : int
+  Disponible : bool
+
+  ID_C (FK) ID_C Curso
+  ID_D (FK) ID_D Docente
+  ID_M (FK) ID_M Materia
+}
+
+' =====================
+' RESTRICCIONES
+' =====================
+
+class Restriccion_Docente {
+  ID_Rd : int
+  ID_D : int 
+  Dia : int
+  Hora : int
+  Disponible : bool
+  
+  ID_D (FK) ID_D Docente
+}
+
+class Restriccion_Curso {
+  ID_Rc : int
+  ID_C : int
+  Dia : int
+  Hora : int
+  Disponible : bool
+  
+  ID_C (FK) ID_C Curso
+}
+
+' =====================
+' UNION
+' =====================
+
+class Docente_Materia {
+  ID_D : int
+  ID_M : int
+
+  ID_D (FK) ID_D Docente
+  ID_M (FK) ID_M Materia
+}
+
+class Docente_Area {
+  ID_D : int
+  ID_A : int
+  
+  ID_D (FK) ID_D Docente
+  ID_A (FK) ID_A Area
+}
+
+class Curso_Area {
+  ID_C : int
+  ID_A : int
+  
+  ID_C (FK) ID_C Curso
+  ID_A (FK) ID_A Area
+}
+
+
+' =====================
+' RELACIONES
+' =====================
+
+Area "1" -- "*" Materia
+
+Curso "1" -- "*" Turno
+Curso "1" -- "*" Restriccion_Curso
+
+Docente "1" -- "*" Restriccion_Docente 
+Docente -right-|>  Usuario
+
+HorarioFinal "1" -right- "1" Docente
+HorarioFinal "1" -left- "1" Curso 
+HorarioFinal "1" -up- "1" Materia
+
+Docente_Materia .. Docente
+Docente_Materia .. Materia
+Docente_Area .. Docente
+Docente_Area .. Area
+Curso_Area .. Curso
+Curso_Area .up. Area
+
+
+@enduml

@@ -4,10 +4,10 @@ require_once "Conexion.php";
 class MateriaBD extends Conexion {
     private $conexion;
 
-    public function Agregar($nombre, $cargaHoraria, $activo, $tipoSalon, $area) {
+    public function Agregar($nombre, $cargaHoraria, $tipoSalon, $activo, $area) {
         $this->Conectar();
 
-        $sql = "INSERT INTO Materia (ID_A, Nombre, CargaHoraria, activo, TipoSalon) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO Materia (Nombre, CargaHoraria, TipoSalon, Activo, ID_A) VALUES (?, ?, ?, ?, ?)";
 
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
@@ -17,7 +17,7 @@ class MateriaBD extends Conexion {
         }
 
         // tipos: i (area), s (nombre), i (cargaHoraria), i (activo), s (tipoSalon)
-        $stmt->bind_param('isiis', $area, $nombre, $cargaHoraria, $activo, $tipoSalon);
+        $stmt->bind_param('sisii', $nombre, $cargaHoraria, $tipoSalon, $activo, $area);
         if ($stmt->execute()) {
             echo 'registro exitoso';
         } else {
