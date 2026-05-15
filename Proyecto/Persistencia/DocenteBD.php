@@ -7,12 +7,12 @@ class DocenteBD extends Conexion{
      * Agregar un docente (tabla Docente en la BD)
      * Se espera: $nombre (string), $apellido (string), $CI (int), $grado (int), $area (int ID_A), $activo (int 0/1)
      */
-    public function Agregar($nombre, $apellido, $CI, $grado, $area, $activo){
+    public function Agregar($grado){
         $this->Conectar();
 
         // La tabla en el esquema SQL se llama Docente; ID_Se lo dejamos NULL por ahora
-        $sql = "INSERT INTO Docente (ID_A, ID_Se, Nombre, Apellido, CI, Grado, Activo)\n                
-            VALUES (?, NULL, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO Docente (ID_U, Grado)                
+            VALUES (?, ?)";
 
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
@@ -21,8 +21,7 @@ class DocenteBD extends Conexion{
             return false;
         }
 
-        // tipos: i (ID_A), s (Nombre), s (Apellido), i (CI), i (Grado), i (Activo)
-        $stmt->bind_param('issiii', $area, $nombre, $apellido, $CI, $grado, $activo);
+        $stmt->bind_param('i',$grado);
         if ($stmt->execute()) {
             echo 'registro exitoso';
         } else {
@@ -36,7 +35,9 @@ class DocenteBD extends Conexion{
 
     public function Listar(){
         $this->Conectar();
-        $sql = 'SELECT * FROM Docente';
+        $sql = 'SELECT u.*, d.Grado
+                FROM Usuario u
+                INNER JOIN Docente d ON u.ID_U = d.ID_U';
         $result= $this->con->query($sql);
 
         $docente = [];
@@ -55,7 +56,10 @@ class DocenteBD extends Conexion{
 
     public function Grado(){
         $this->Conectar();
-        $sql = "SELECT * FROM Docente ORDER BY Grado DESC";
+        $sql = "SELECT u.*, d.Grado
+                FROM Usuario u
+                INNER JOIN Docente d ON u.ID_U = d.ID_U
+                ORDER BY d.Grado DESC";
         $result= $this->con->query($sql);
 
         $docente = [];
@@ -78,7 +82,10 @@ class DocenteBD extends Conexion{
         $con = new Conexion();
         $conn = $con->conectar();
 
-        $sql = "SELECT * FROM Docente WHERE ID_D = $id";
+        $sql = "SELECT u.*, d.Grado
+                FROM Usuario u
+                INNER JOIN Docente d ON u.ID_U = d.ID_U
+                WHERE d.ID_D = $id";
         $resultado = $conn->query($sql);
 
         return $resultado->fetch_assoc();

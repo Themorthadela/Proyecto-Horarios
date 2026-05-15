@@ -41,6 +41,32 @@
         <input type="submit" name="enviar" value="Crear Materia">
     </form>
 
+        <form action="" method="post">
+            <h2>Asignar Docente</h2>
+
+            <label for="materia">Materia:</label>
+            <select name="materia" id="materia">
+                <option value="">Seleccione una materia</option>
+                <?php foreach ($materias as $m) { ?>
+                    <option value="<?php echo $m['ID_M']; ?>">
+                        <?php echo $m['Nombre']; ?>
+                    </option>
+                <?php } ?>
+            </select><br><br>
+
+            <label for="docente">Docente:</label>
+            <select name="docente" id="docente">
+                <option value="">Seleccione un docente</option>
+                <?php foreach ($docentes as $d) { ?>
+                    <option value="<?php echo $d['ID_D']; ?>">
+                        <?php echo $d['Nombre'] . " " . $d['Apellido']; ?>
+                    </option>
+                <?php } ?>
+            </select><br><br>
+
+            <input type="submit" name="asignar" value="Asignar Docente">
+        </form>
+
     <?php
         include_once "Logica/Materia.php";
         if (isset($_POST['enviar'])) {
