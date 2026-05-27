@@ -1,6 +1,14 @@
 <?php
 class Docente{
+    private $id_u;
     private $grado;
+
+    public function SetID_U($id_u){
+        $this->id_u=$id_u;
+    }
+    public function GetID_U(){
+        return $this->id_u;
+    }
 
     public function GetGrado(){
         return $this->grado;
@@ -13,8 +21,9 @@ class Docente{
         include_once 'Persistencia/DocenteBD.php';
         $DocenteBD= new DocenteBD();
         $DocenteBD-> Agregar(  
-            $this->grado,
-            );
+            $this->id_u,
+            $this->grado
+        );
     }
 
     public function ListarDocentes(){

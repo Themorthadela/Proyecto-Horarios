@@ -3,14 +3,10 @@ require_once "Conexion.php";
 
 class DocenteBD extends Conexion{
 
-    /**
-     * Agregar un docente (tabla Docente en la BD)
-     * Se espera: $nombre (string), $apellido (string), $CI (int), $grado (int), $area (int ID_A), $activo (int 0/1)
-     */
-    public function Agregar($grado){
+    public function Agregar($id_u, $grado){
         $this->Conectar();
 
-        // La tabla en el esquema SQL se llama Docente; ID_Se lo dejamos NULL por ahora
+        
         $sql = "INSERT INTO Docente (ID_U, Grado)                
             VALUES (?, ?)";
 
@@ -21,7 +17,7 @@ class DocenteBD extends Conexion{
             return false;
         }
 
-        $stmt->bind_param('i',$grado);
+        $stmt->bind_param('ii',$id_u, $grado);
         if ($stmt->execute()) {
             echo 'registro exitoso';
         } else {
