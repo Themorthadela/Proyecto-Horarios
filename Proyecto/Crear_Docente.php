@@ -13,8 +13,11 @@
         <label for="apellido">Apellido:</label>
         <input type="text" id="apellido" name="apellido" required><br><br>
 
-        <label for="CI">Cedula:</label>
-        <input type="number" id="CI" name="CI" required><br><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
 
         <label for="grado">Grado:</label>
         <input type="number" id="grado" name="grado" required><br><br>
@@ -40,20 +43,60 @@
 
     </form>
 
-    <?php
-    include_once "Logica/Docente.php";
+<?php
+include_once "Logica/Docente.php";
 
-    if (isset($_POST['enviar'])) {
-        $docente = new Docente();
-        $docente->SetNombre($_POST['nombre']);
-        $docente->SetApellido($_POST['apellido']);
-        $docente->SetCI($_POST['CI']);
-        $docente->SetGrado($_POST['grado']);
-        $docente->SetArea($_POST['area']);
-        $docente->SetActivo(true);
-        $docente->AgregarDocente();
-    }
-    ?>
+if (isset($_POST['enviar'])) {
+
+    include_once "Logica/Usuario.php";
+    include_once "Logica/Union/Docente_Area.php";
+
+    $usuario = new Usuario();
+    $usuario->SetNombre($_POST['nombre']);
+    $usuario->SetApellido($_POST['apellido']);
+    $usuario->SetCorreo($_POST['email']);
+    $usuario->SetContrasena($_POST['password']);
+    $usuario->SetActivo(true);
+    $usuario->SetRol('Docente');
+    $usuario->AgregarUsuario();
+
+    $email = $_POST['email'];
+
+    $con = new Conexion();
+    $conexion = $con->conectar();
+
+    $sql = "SELECT ID_U FROM Usuario WHERE Email = ?";
+    $stmt = $conexion->prepare($sql);
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+    $fila = $resultado->fetch_assoc();
+
+    $id_u = $fila['ID_U'];
+
+    $docente = new Docente();
+    $docente->SetID_U($id_u);
+    $docente->SetGrado($_POST['grado']);
+    $docente->AgregarDocente();
+
+    $sql = "SELECT d.ID_D FROM Docente d INNER JOIN Usuario u ON d.ID_U = u.ID_U WHERE u.Email = ?";
+    $stmt = $conexion->prepare($sql);
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+    $fila = $resultado->fetch_assoc();
+
+    $id_d = $fila['ID_D'];
+    $id_a = $_POST['area'];
+
+    $docente_area = new Docente_Area();
+    $docente_area->SetIdDocente($id_d);
+    $docente_area->SetIdArea($id_a);
+    $docente_area->AgregarDocenteArea();
+}
+?>
 
 </body>
 </html>

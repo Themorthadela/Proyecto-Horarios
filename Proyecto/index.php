@@ -11,5 +11,6 @@
     <a href="Crear_Area.php">Crear Área</a>
     <a href="Crear_Materia.php">Crear Materia</a>
     <a href="Restricciones.php">Agregar Restricciones</a>
+    <a href="Crear_Usuario.php">Crear Usuario</a>
 </body>
 </html>

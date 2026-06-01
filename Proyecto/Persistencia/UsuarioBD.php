@@ -7,12 +7,12 @@ class UsuarioBD extends Conexion {
     public function Agregar($nombre, $apellido, $correo, $contrasena, $activo, $rol) {
         $this->Conectar();
 
-        $sql = "INSERT INTO Usuario (Nombre, Apellido, Email, Contrasena, Activo, Rol) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO Usuario (Nombre, Apellido, Email, Contraseña, Activo, Rol) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
             die("Error en la preparación de la consulta: " . $this->con->error);
         }
-        $stmt->bind_param("ssssii", $nombre, $apellido, $correo, $contrasena, $activo, $rol);
+        $stmt->bind_param("ssssss", $nombre, $apellido, $correo, $contrasena, $activo, $rol);
         if (!$stmt->execute()) {
             die("Error al ejecutar la consulta: " . $stmt->error);
         }

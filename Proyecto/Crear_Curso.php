@@ -19,14 +19,62 @@
             <option value="6">Lunes a Sábado</option>
         </select><br><br>   
 
-        <label for="semanal">Horarios en los que se dan las clases:</label>
+        <label for="semanal">Horas Semanales:</label>
         <input type="number" id="semanal" name="semanal" required><br><br>
+
+<label>Área:</label>
+
+<?php
+include_once "Logica/Area.php";
+$area = new Area();
+$areas = $area->ListarAreas();
+?>
+
+<div id="contenedorAreas">
+    <div class="area-item">
+        <select name="area[]">
+            <option value="">Seleccione un área</option>
+            <?php foreach ($areas as $a) { ?>
+                <option value="<?php echo $a['ID_A']; ?>">
+                    <?php echo $a['Nombre']; ?>
+                </option>
+            <?php } ?>
+        </select>
+    </div>
+</div>
+
+<button type="button" onclick="agregarArea()">+</button>
+
+<br><br>
+
+<script>
+function agregarArea() {
+    const contenedor = document.getElementById('contenedorAreas');
+
+    const nuevo = document.createElement('div');
+    nuevo.className = 'area-item';
+
+    nuevo.innerHTML = `
+        <select name="area[]">
+            <option value="">Seleccione un área</option>
+            <?php foreach ($areas as $a) { ?>
+                <option value="<?php echo $a['ID_A']; ?>">
+                    <?php echo $a['Nombre']; ?>
+                </option>
+            <?php } ?>
+        </select>
+    `;
+
+    contenedor.appendChild(nuevo);
+}
+</script>
 
         <input type="submit" name="enviar" value="Crear Curso">
     </form>
 
     <?php
         include_once "Logica/Curso.php";
+        include_once "Logica/Union/Curso_Area.php";
 
         if (isset($_POST['enviar'])) {
             $curso = new Curso();
@@ -36,6 +84,29 @@
             $curso->SetSemanal($_POST['semanal']);
             $curso->SetActivo(true);
             $curso->AgregarCurso();
+
+            $sql = "SELECT ID_C FROM Curso WHERE Nombre = '" . $_POST['nombre'] . "'";
+            $con = new Conexion();
+            $conexion = $con->conectar();
+            $result = $conexion->query($sql);
+            if ($result && $result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $curso->SetId($row['ID_C']);
+            }
+
+            $curso_area = new Curso_Area();
+
+            if (isset($_POST['area']) && is_array($_POST['area'])) {
+                foreach ($_POST['area'] as $id_a) {
+                    if (!empty($id_a)) {
+                        $curso_area->SetIdCurso($curso->GetId());
+                        $curso_area->SetIdArea($id_a);
+                        $curso_area->AgregarCursoArea();
+                    }
+                }
+            }
+
+
         }
     ?>
 
