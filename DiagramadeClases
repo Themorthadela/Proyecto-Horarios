@@ -42,12 +42,17 @@ class Materia {
 class Curso {
   ID_C : int
   Nombre : string
+  Horas : int 
+  Dias : int
+  Semanal : int
   Activo : bool
 }
 
 class Turno {
   ID_H : int
   ID_C : int
+  HoraEntrada : time
+  HoraSalida : time
   Turno : enum 
 
   ID_C (FK) ID_C Curso

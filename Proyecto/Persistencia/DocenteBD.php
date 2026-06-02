@@ -31,7 +31,7 @@ class DocenteBD extends Conexion{
 
     public function Listar(){
         $this->Conectar();
-        $sql = 'SELECT u.*, d.Grado
+        $sql = 'SELECT u.*, d.*
                 FROM Usuario u
                 INNER JOIN Docente d ON u.ID_U = d.ID_U';
         $result= $this->con->query($sql);
@@ -52,7 +52,7 @@ class DocenteBD extends Conexion{
 
     public function Grado(){
         $this->Conectar();
-        $sql = "SELECT u.*, d.Grado
+        $sql = "SELECT u.*, d.*
                 FROM Usuario u
                 INNER JOIN Docente d ON u.ID_U = d.ID_U
                 ORDER BY d.Grado DESC";
@@ -78,7 +78,7 @@ class DocenteBD extends Conexion{
         $con = new Conexion();
         $conn = $con->conectar();
 
-        $sql = "SELECT u.*, d.Grado
+        $sql = "SELECT u.*, d.*
                 FROM Usuario u
                 INNER JOIN Docente d ON u.ID_U = d.ID_U
                 WHERE d.ID_D = $id";

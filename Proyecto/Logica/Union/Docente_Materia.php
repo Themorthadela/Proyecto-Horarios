@@ -1,28 +1,28 @@
 <?php
     class Docente_Materia {
-        private $iddocente;
-        private $idmateria;
+        private $id_d;
+        private $id_m;
 
         public function GetIdDocente() {
-            return $this->iddocente;
+            return $this->id_d;
         }
-        public function SetIdDocente($iddocente) {
-            $this->iddocente = $iddocente;
+        public function SetIdDocente($id_d) {
+            $this->id_d = $id_d;
         }
 
         public function GetIdMateria() {
-            return $this->idmateria;
+            return $this->id_m;
         }
-        public function SetIdMateria($idmateria) {
-            $this->idmateria = $idmateria;
+        public function SetIdMateria($id_m) {
+            $this->id_m = $id_m;
         }
 
         public function AgregarDocenteMateria() {
             include_once 'Persistencia/Docente_MateriaBD.php';
             $docente_materiaBD = new Docente_MateriaBD();
             return $docente_materiaBD->Agregar(
-                $this->iddocente,
-                $this->idmateria
+                $this->id_d,
+                $this->id_m
             );
         }
 
@@ -32,3 +32,4 @@
             return $docente_materiaBD->Listar();
         }
     }
+?>

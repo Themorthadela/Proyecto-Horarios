@@ -45,6 +45,11 @@
             <h2>Asignar Docente</h2>
 
             <label for="materia">Materia:</label>
+                <?php
+                    include_once "Logica/Materia.php";
+                    $materia = new Materia();
+                    $materias = $materia->ListarMaterias();
+                ?>
             <select name="materia" id="materia">
                 <option value="">Seleccione una materia</option>
                 <?php foreach ($materias as $m) { ?>
@@ -55,6 +60,11 @@
             </select><br><br>
 
             <label for="docente">Docente:</label>
+                <?php
+                    include_once "Logica/Docente.php";
+                    $docente = new Docente();
+                    $docentes = $docente->ListarDocentes();
+                ?>
             <select name="docente" id="docente">
                 <option value="">Seleccione un docente</option>
                 <?php foreach ($docentes as $d) { ?>
@@ -77,6 +87,14 @@
             $materia->SetActivo(true);
             $materia->SetArea($_POST['area']);
             $materia->AgregarMateria();
+        }
+
+        include_once "Logica/Union/Docente_Materia.php";
+        if (isset($_POST['asignar'])) {
+            $docente_materia = new Docente_Materia();
+            $docente_materia->SetIdDocente($_POST['docente']);
+            $docente_materia->SetIdMateria($_POST['materia']);
+            $docente_materia->AgregarDocenteMateria();
         }
     ?>
 </body>

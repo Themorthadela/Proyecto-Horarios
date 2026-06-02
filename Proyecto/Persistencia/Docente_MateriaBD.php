@@ -1,17 +1,20 @@
 <?php
     include_once 'Conexion.php';
-    class Docente_Materia extends Conexion {
-    public function Agregar($iddocente, $idmateria) {
+    class Docente_MateriaBD extends Conexion {
+    public function Agregar($id_d, $id_m) {
         $this->Conectar();
 
-        $sql = "INSERT INTO Docente_Materia (ID_D, ID_M) VALUES ('$iddocente', '$idmateria')";
+        $sql = "INSERT INTO Docente_Materia (ID_D, ID_M) VALUES ('$id_d', '$id_m')";
         
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
             echo 'Error al preparar statement: ' . $this->con->error;
             $this->Desconectar();
-        return false;
-    }
+            return false;
+        }
+        $stmt->execute();
+        $this->Desconectar();
+        return true;
     }
 
     public function Listar() {

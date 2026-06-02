@@ -85,21 +85,23 @@ function agregarArea() {
             $curso->SetActivo(true);
             $curso->AgregarCurso();
 
-            $sql = "SELECT ID_C FROM Curso WHERE Nombre = '" . $_POST['nombre'] . "'";
+            $nombre = $_POST['nombre'];
+
             $con = new Conexion();
             $conexion = $con->conectar();
-            $result = $conexion->query($sql);
-            if ($result && $result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                $curso->SetId($row['ID_C']);
-            }
+
+            $sql = "SELECT ID_C FROM Curso WHERE Nombre = '$nombre'";
+            $resultado = mysqli_query($conexion, $sql);
+
+            $fila = mysqli_fetch_assoc($resultado);
+            $id_c = $fila['ID_C'];
 
             $curso_area = new Curso_Area();
 
             if (isset($_POST['area']) && is_array($_POST['area'])) {
                 foreach ($_POST['area'] as $id_a) {
                     if (!empty($id_a)) {
-                        $curso_area->SetIdCurso($curso->GetId());
+                        $curso_area->SetIdCurso($id_c);
                         $curso_area->SetIdArea($id_a);
                         $curso_area->AgregarCursoArea();
                     }
