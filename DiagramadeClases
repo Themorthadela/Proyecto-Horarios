@@ -42,7 +42,7 @@ class Materia {
 class Curso {
   ID_C : int
   Nombre : string
-  Horas : int 
+  CantidadHoras : int 
   Dias : int
   Semanal : int
   Activo : bool
