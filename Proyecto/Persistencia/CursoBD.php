@@ -6,7 +6,7 @@ class CursoBD extends Conexion {
     public function Agregar($nombre, $horas, $dias, $semanal, $activo) {
         $this->Conectar();
 
-        $sql = "INSERT INTO Curso (Nombre, Horas, Dias, Semanal, Activo) 
+        $sql = "INSERT INTO Curso (Nombre, CantidadHoras, Dias, Semanal, Activo) 
             VALUES (?, ?, ?, ?, ?)";
         
         $stmt = $this->con->prepare($sql);
@@ -16,7 +16,8 @@ class CursoBD extends Conexion {
             return false;
         }
 
-        $stmt->bind_param('siiii', $nombre, $horas, $dias, $semanal, $activo);
+        // tipos: s (nombre), s (horas), i (dias), i (semanal), i (activo)
+        $stmt->bind_param('ssiii', $nombre, $horas, $dias, $semanal, $activo);
         if ($stmt->execute()) {
             echo 'Registro exitoso';
         } else {
@@ -52,7 +53,9 @@ class CursoBD extends Conexion {
     $con = new Conexion();
     $conn = $con->conectar();
 
-    $sql = "SELECT * FROM Curso WHERE ID_C = $id";
+    $sql = "SELECT c.*, t.* FROM Curso c INNER JOIN Turno t 
+            ON c.ID_C = t.ID_C  
+            WHERE c.ID_C = $id";
     $resultado = $conn->query($sql);
 
     return $resultado->fetch_assoc();

@@ -22,6 +22,19 @@
         <label for="semanal">Horas Semanales:</label>
         <input type="number" id="semanal" name="semanal" required><br><br>
 
+        <label for="turno">Turno:</label>
+        <select name="turno" id="">
+            <option value="Matutino" selected>Matutino</option>
+            <option value="Vespertino">Vespertino</option>
+            <option value="Nocturno">Nocturno</option>
+        </select><br><br>
+
+        <label for="hora_entrada">Hora de Entrada:</label>
+        <input type="time" id="hora_entrada" name="hora_entrada" required><br><br>
+
+        <label for="hora_salida">Hora de Salida:</label>
+        <input type="time" id="hora_salida" name="hora_salida" required><br><br>
+
 <label>Área:</label>
 
 <?php
@@ -75,6 +88,7 @@ function agregarArea() {
     <?php
         include_once "Logica/Curso.php";
         include_once "Logica/Union/Curso_Area.php";
+        include_once "Logica/Turno.php";
 
         if (isset($_POST['enviar'])) {
             $curso = new Curso();
@@ -107,6 +121,13 @@ function agregarArea() {
                     }
                 }
             }
+
+            $turno = new Turno();
+            $turno->SetIdCurso($id_c);
+            $turno->SetHoraEntrada($_POST['hora_entrada']);
+            $turno->SetHoraSalida($_POST['hora_salida']);
+            $turno->SetTurno($_POST['turno']);
+            $turno->AgregarTurno();
 
 
         }

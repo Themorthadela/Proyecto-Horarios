@@ -10,7 +10,8 @@
     <a href="Crear_Docente.php">Crear Docente</a>
     <a href="Crear_Area.php">Crear Área</a>
     <a href="Crear_Materia.php">Crear Materia</a>
-    <a href="Restricciones.php">Agregar Restricciones</a>
+    <a href="Crear_Restriccion_Curso.php">Agregar Restricciones a curso</a>
+    <a href="Crear_Restriccion_Docente.php">Agregar Restricciones a docente</a>
     <a href="Crear_Usuario.php">Crear Usuario</a>
 </body>
 </html>

@@ -1,5 +1,5 @@
 <?php
-include_once 'Conexion.php';
+require_once __DIR__ . '/../Conexion.php';
 class Curso_AreaBD extends Conexion {
 
     public function Agregar($id_c, $id_a) {

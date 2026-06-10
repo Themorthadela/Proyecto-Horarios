@@ -2,18 +2,28 @@
 include_once 'Conexion.php';
     class TurnoBD extends Conexion {
 
-        public function Agregar($idcurso, $turno) {
-            $this->Conectar();
+public function Agregar($idcurso, $hora_entrada, $hora_salida, $turno) {
+    $this->Conectar();
 
-            $sql = "INSERT INTO turno (ID_C, Turno) VALUES ('$idcurso', '$turno')";
-            
-            $stmt = $this->con->prepare($sql);
-            if (!$stmt) {
-                echo 'Error al preparar statement: ' . $this->con->error;
-                $this->Desconectar();
-            return false;
-        }
-        }
+    $sql = "INSERT INTO Turno (ID_C, HoraEntrada, HoraSalida, Turno)
+            VALUES ('$idcurso', '$hora_entrada', '$hora_salida', '$turno')";
+
+    $stmt = $this->con->prepare($sql);
+
+    if (!$stmt) {
+        echo 'Error al preparar statement: ' . $this->con->error;
+        $this->Desconectar();
+        return false;
+    }
+
+    if (!$stmt->execute()) {
+        echo 'Error al ejecutar: ' . $stmt->error;
+        return false;
+    }
+
+    return true;
+}
+        
 
         public function Listar() {
             $sql = "SELECT c.*, t.Turno 

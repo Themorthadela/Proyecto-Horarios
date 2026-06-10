@@ -18,7 +18,7 @@
         }
 
         public function AgregarCursoArea() {
-            include_once 'Persistencia/Curso_AreaBD.php';
+            include_once 'Persistencia/Union/Curso_AreaBD.php';
             $curso_areaBD = new Curso_AreaBD();
             return $curso_areaBD->Agregar(
                 $this->id_c,
@@ -27,7 +27,7 @@
         }
 
         public function ListarCursosAreas() {
-            include_once 'Persistencia/Curso_AreaBD.php';
+            include_once 'Persistencia/Union/Curso_AreaBD.php';
             $curso_areaBD = new Curso_AreaBD();
             return $curso_areaBD->Listar();
         }

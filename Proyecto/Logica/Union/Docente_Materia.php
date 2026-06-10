@@ -18,7 +18,7 @@
         }
 
         public function AgregarDocenteMateria() {
-            include_once 'Persistencia/Docente_MateriaBD.php';
+            include_once 'Persistencia/Union/Docente_MateriaBD.php';
             $docente_materiaBD = new Docente_MateriaBD();
             return $docente_materiaBD->Agregar(
                 $this->id_d,
@@ -27,7 +27,7 @@
         }
 
         public function ListarDocentesMaterias() {
-            include_once 'Persistencia/Docente_MateriaBD.php';
+            include_once 'Persistencia/Union/Docente_MateriaBD.php';
             $docente_materiaBD = new Docente_MateriaBD();
             return $docente_materiaBD->Listar();
         }
