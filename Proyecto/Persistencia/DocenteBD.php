@@ -3,14 +3,10 @@ require_once "Conexion.php";
 
 class DocenteBD extends Conexion{
 
-    /**
-     * Agregar un docente (tabla Docente en la BD)
-     * Se espera: $nombre (string), $apellido (string), $CI (int), $grado (int), $area (int ID_A), $activo (int 0/1)
-     */
-    public function Agregar($grado){
+    public function Agregar($id_u, $grado){
         $this->Conectar();
 
-        // La tabla en el esquema SQL se llama Docente; ID_Se lo dejamos NULL por ahora
+        
         $sql = "INSERT INTO Docente (ID_U, Grado)                
             VALUES (?, ?)";
 
@@ -21,7 +17,7 @@ class DocenteBD extends Conexion{
             return false;
         }
 
-        $stmt->bind_param('i',$grado);
+        $stmt->bind_param('ii',$id_u, $grado);
         if ($stmt->execute()) {
             echo 'registro exitoso';
         } else {
@@ -35,7 +31,7 @@ class DocenteBD extends Conexion{
 
     public function Listar(){
         $this->Conectar();
-        $sql = 'SELECT u.*, d.Grado
+        $sql = 'SELECT u.*, d.*
                 FROM Usuario u
                 INNER JOIN Docente d ON u.ID_U = d.ID_U';
         $result= $this->con->query($sql);
@@ -56,7 +52,7 @@ class DocenteBD extends Conexion{
 
     public function Grado(){
         $this->Conectar();
-        $sql = "SELECT u.*, d.Grado
+        $sql = "SELECT u.*, d.*
                 FROM Usuario u
                 INNER JOIN Docente d ON u.ID_U = d.ID_U
                 ORDER BY d.Grado DESC";
@@ -82,7 +78,7 @@ class DocenteBD extends Conexion{
         $con = new Conexion();
         $conn = $con->conectar();
 
-        $sql = "SELECT u.*, d.Grado
+        $sql = "SELECT u.*, d.*
                 FROM Usuario u
                 INNER JOIN Docente d ON u.ID_U = d.ID_U
                 WHERE d.ID_D = $id";

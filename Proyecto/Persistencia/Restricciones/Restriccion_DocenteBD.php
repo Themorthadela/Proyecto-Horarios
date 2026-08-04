@@ -1,12 +1,12 @@
 <?php
 include_once "Conexion.php";
 
-    class RestriccionBD extends Conexion {
+    class Restriccion_DocenteBD extends Conexion {
 
-        public function Agregar($dia, $hora, $estado) {
+        public function Agregar($dia, $hora, $disponible) {
             $this->Conectar();
 
-            $sql = "INSERT INTO Restriccion (Dia, Hora, Estado) VALUES (?, ?, ?)";
+            $sql = "INSERT INTO Restriccion_Docente (Dia, Hora, Disponible) VALUES (?, ?, ?)";
 
             $stmt = $this->con->prepare($sql);
             if (!$stmt) {
@@ -14,8 +14,8 @@ include_once "Conexion.php";
                 $this->Desconectar();
             return false;
             }
-                // tipos: i (dia), i (hora), i (estado)
-            $stmt->bind_param('iii', $dia, $hora, $estado);
+                // tipos: i (dia), i (hora), i (disponible)
+            $stmt->bind_param('iii', $dia, $hora, $disponible);
             if ($stmt->execute()) {
                 echo 'registro exitoso';
             } else {
@@ -30,7 +30,7 @@ include_once "Conexion.php";
         public function Listar($idDocente, $idCurso) {
             $this->Conectar();
             
-            $sql = 'SELECT * FROM Restriccion WHERE ID_D = ? AND ID_C = ?';
+            $sql = 'SELECT * FROM Restriccion_Docente WHERE ID_D = ? AND ID_C = ?';
             $stmt = $this->con->prepare($sql);
             $stmt->bind_param('ii', $idDocente, $idCurso);
             $stmt->execute();

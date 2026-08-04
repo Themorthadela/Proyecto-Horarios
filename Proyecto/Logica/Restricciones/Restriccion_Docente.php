@@ -1,8 +1,8 @@
 <?php
-    class Restriccion {
+    class Restriccion_Docente {
         private $dia;
         private $hora;
-        private $estado;
+        private $disponible;
         
         public function SetDia($dia) {
             $this->dia = $dia;
@@ -18,11 +18,11 @@
             return $this->hora;
         }
  
-        public function SetEstado($estado) {
-            $this->estado = $estado;
+        public function SetDisponible($disponible) {
+            $this->disponible = $disponible;
         }
-        public function GetEstado() {
-            return $this->estado;
+        public function GetDisponible() {
+            return $this->disponible;
         }
         
         public function ListarRestricciones($idDocente, $idCurso) {

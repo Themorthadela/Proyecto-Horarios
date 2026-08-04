@@ -42,12 +42,17 @@ class Materia {
 class Curso {
   ID_C : int
   Nombre : string
+  CantidadHoras : int 
+  Dias : int
+  Semanal : int
   Activo : bool
 }
 
 class Turno {
   ID_H : int
   ID_C : int
+  HoraEntrada : time
+  HoraSalida : time
   Turno : enum 
 
   ID_C (FK) ID_C Curso
@@ -77,7 +82,8 @@ class Restriccion_Docente {
   ID_Rd : int
   ID_D : int 
   Dia : int
-  Hora : int
+  HoraEntrada : time
+  HoraSalida : time
   Disponible : bool
   
   ID_D (FK) ID_D Docente
@@ -87,7 +93,8 @@ class Restriccion_Curso {
   ID_Rc : int
   ID_C : int
   Dia : int
-  Hora : int
+  HoraEntrada : time
+  HoraSalida : time
   Disponible : bool
   
   ID_C (FK) ID_C Curso
@@ -98,6 +105,7 @@ class Restriccion_Curso {
 ' =====================
 
 class Docente_Materia {
+  ID_Dm : int
   ID_D : int
   ID_M : int
 
@@ -106,6 +114,7 @@ class Docente_Materia {
 }
 
 class Docente_Area {
+  ID_Da : int
   ID_D : int
   ID_A : int
   
@@ -114,6 +123,7 @@ class Docente_Area {
 }
 
 class Curso_Area {
+  ID_Ca : int
   ID_C : int
   ID_A : int
   

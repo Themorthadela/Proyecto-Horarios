@@ -25,21 +25,6 @@
             <?php } ?>
         </select>
 
-        <label>Curso:</label>
-        <?php
-        include_once "Logica/Curso.php";
-        $curso = new Curso();
-        $cursos = $curso->ListarCursos();
-        ?>
-        <select name="curso" required>
-            <option value="">Seleccione un curso</option>
-            <?php foreach ($cursos as $c) { ?>
-                <option value="<?php echo $c['ID_C']; ?>">
-                    <?php echo $c['Nombre']; ?>
-                </option>
-            <?php } ?>
-        </select>
-
         <input type="submit" name="enviar" value="Generar Tabla">        
     </form>
 
@@ -54,24 +39,17 @@
             $docente = new Docente();
             $datosDocente = $docente->ObtenerDocentePorId($idDocente);
 
-
-            $curso = new Curso();
-            $datosCurso = $curso->ObtenerCursoPorId($idCurso);
-
-            $horas = $datosCurso['Horas'];
-            $dias = $datosCurso['Dias'];
-
             // Obtener restricciones del docente para el curso seleccionado
             include_once "Logica/Restriccion.php";
-            $restriccion = new Restriccion();
-            $restriccionesDocente = $restriccion->ListarRestricciones($idDocente, $idCurso);
+            $restriccion = new Restriccion_Docente();
+            $restriccionesDocente = $restriccion->ListarRestricciones($idDocente);
 
-            $estato = [];
+            $estado = [];
             foreach ($restriccionesDocente as $r) {
-                $estato[$r['Dia']][$r['Hora']] = $r['Estado'];
+                $estado[$r['Dia']][$r['Hora']] = $r['Disponible'];
             }
             
-        // Mapear horas a nombres
+        // Mapear de Horas
             $mapeoHoras = [
                 1 => "Primera",
                 2 => "Segunda",
@@ -95,7 +73,6 @@
             // Mostrar tabla de restricciones
             echo "<h2>Tabla de restricciones</h2>";
             echo "<p>Docente: " . $datosDocente['Nombre'] . " " . $datosDocente['Apellido'] . "</p>";
-            echo "<p>Curso: " . $datosCurso['Nombre'] . "</p>";
 
             echo "<table border='1' cellpadding='10'>";
 
@@ -111,7 +88,7 @@
                 echo "<td>{$mapeoHoras[$h]}</td>";
                 for ($d=1; $d <= $dias; $d++) {
 
-                    $estado = $estato[$d][$h] ?? 0; // Si no hay restricción, se asume 0 (disponible)
+                    $estado = $estado[$d][$h] ?? 0; // Si no hay restricción, se asume 0 (disponible)
                     $color = ($estado == 1) ? "red" : "green";
                     echo "<td>
                         <button 
