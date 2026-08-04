@@ -22,7 +22,7 @@
         <?php } ?>
     </select>
 
-    <button type="submit" name="enviar">Enviar</button>
+    <button type="submit" name="enviar">Mostrar</button>
 
     <?php
     include_once "Logica/Curso.php";
@@ -62,25 +62,93 @@
 
 $idCurso = $cursoSeleccionado ?? 0;
 
+    include_once "Logica/Turno.php";
+
+        $turno = new Turno();
+
+        $datosTurno = $turno->ObtenerTurnoCurso($cursoSeleccionado);
+
+        $horaEntrada = $datosTurno["HoraEntrada"];
+        $horaSalida  = $datosTurno["HoraSalida"];
+
 // Generar bloques horarios de 45 minutos
+include_once "Logica/Restricciones/Restriccion_Curso.php";
+
+$restriccion = new Restriccion_Curso();
+
+$datos = $restriccion->ObtenerRestriccionesCurso($cursoSeleccionado);
+
+//mapeo de horas y días
 $mapeoHoras = [];
 
 $inicio = strtotime($horaEntrada);
+$finCurso = strtotime($horaSalida);
 
-for ($i = 1; $i <= $horas; $i++) {
+while ($inicio < $finCurso) {
 
-    $fin = $inicio + (45 * 60);
+    $finBloque = $inicio + 45 * 60;
 
-    $mapeoHoras[$i] =
-        date("H:i", $inicio) .
-        " - " .
-        date("H:i", $fin);
+    if ($finBloque > $finCurso) {
+        break;
+    }
 
-    $inicio = $fin;
+    $mapeoHoras[] =
+        date("H:i",$inicio)." - ".
+        date("H:i",$finBloque);
 
-    // Recreo de 5 minutos cada 2 bloques
-    if ($i % 2 == 0 && $i < $horas) {
+    $inicio = $finBloque;
+
+    // Recreo de 5 minutos cada dos bloques
+    if (count($mapeoHoras) % 2 == 0) {
         $inicio += 5 * 60;
+    }
+}
+
+$horas = count($mapeoHoras);
+
+$activo = [];
+
+if (!empty($datos)) {
+
+    // El curso ya tiene horarios guardados
+    foreach ($datos as $fila) {
+
+        if (!in_array($fila['Hora'], $mapeoHoras)) {
+            $mapeoHoras[] = $fila['Hora'];
+        }
+
+        $indiceHora = array_search($fila['Hora'], $mapeoHoras) + 1;
+
+        $activo[$fila['Dia']][$indiceHora] = $fila['Activo'];
+    }
+
+    $temp = [];
+    foreach ($mapeoHoras as $i => $hora) {
+        $temp[$i + 1] = $hora;
+    }
+
+    $mapeoHoras = $temp;
+    $horas = count($mapeoHoras);
+
+} else {
+
+    // No existen horarios, se generan automáticamente
+    $inicio = strtotime($horaEntrada);
+
+    for ($i = 1; $i <= $horas; $i++) {
+
+        $fin = $inicio + (45 * 60);
+
+        $mapeoHoras[$i] =
+            date("H:i", $inicio) .
+            " - " .
+            date("H:i", $fin);
+
+        $inicio = $fin;
+
+        if ($i % 2 == 0 && $i < $horas) {
+            $inicio += 5 * 60;
+        }
     }
 }
 
@@ -128,7 +196,7 @@ for ($h = 1; $h <= $horas; $h++) {
                 type='button'
                 class='bloque'
                 data-dia='{$d}'
-                data-hora='{$h}'
+                data-hora='{$mapeoHoras[$h]}'
                 style='width:100%; height:40px; background-color:{$color}; border:none; cursor:pointer;'
             ></button>
         </td>";

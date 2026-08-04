@@ -2,10 +2,10 @@
     include_once __DIR__ . '/../Conexion.php';
     class Restriccion_CursoBD extends Conexion {
 
-        public function Agregar($id_c, $dia, $hora, $disponible) {
+        public function Agregar($id_c, $dia, $hora_I, $hora_F, $disponible) {
             $this->Conectar();
 
-            $sql = "INSERT INTO Restriccion_Curso (ID_C, Dia, Hora, Disponible) VALUES (?, ?, ?, ?)";
+            $sql = "INSERT INTO Restriccion_Curso (ID_C, Dia, HoraEntrada, HoraSalida, Disponible) VALUES (?, ?, ?, ?, ?)";
 
             $stmt = $this->con->prepare($sql);
             if (!$stmt) {
@@ -13,8 +13,8 @@
                 $this->Desconectar();
             return false;
             }
-                // tipos: i (id_c), i (dia), i (hora), i (disponible)
-            $stmt->bind_param('iiii', $id_c, $dia, $hora, $disponible);
+                // tipos: i (id_c), i (dia), s (hora_I), s (hora_F), i (disponible)
+            $stmt->bind_param('iissi', $id_c, $dia, $hora_I, $hora_F, $disponible);
             if ($stmt->execute()) {
                 echo 'registro exitoso';
             } else {
@@ -48,5 +48,21 @@
             $stmt->close();
             $this->Desconectar();
             return $restriccion;
+        }
+
+        public function ObtenerRestriccionesCurso($idCurso) {
+        
+            $sql = "SELECT Dia, HoraEntrada, HoraSalida, Activo
+                    FROM Restriccion_Curso
+                    WHERE ID_C = ?
+                    ORDER BY HoraEntrada, Dia";
+
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bind_param("i", $idCurso);
+            $stmt->execute();
+
+            $resultado = $stmt->get_result();
+
+            return $resultado->fetch_all(MYSQLI_ASSOC);
         }
     }

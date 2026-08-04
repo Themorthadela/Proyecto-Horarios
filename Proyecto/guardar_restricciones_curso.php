@@ -37,9 +37,9 @@ if (!$idCurso || !is_array($datos)) {
     exit;
 }
 
-$selectStmt = $mysqli->prepare("SELECT ID_Rc FROM Restriccion_Curso WHERE ID_C = ? AND Dia = ? AND Hora = ? AND Disponible = ?");
-$updateStmt = $mysqli->prepare("UPDATE Restriccion_Curso SET Disponible = ? WHERE ID_C = ? AND Dia = ? AND Hora = ? AND Disponible = ?");
-$insertStmt = $mysqli->prepare("INSERT INTO Restriccion_Curso (ID_C, Dia, Hora, Disponible) VALUES (?, ?, ?, ?)");
+$selectStmt = $mysqli->prepare("SELECT ID_Rc FROM Restriccion_Curso WHERE ID_C = ? AND Dia = ? AND HoraEntrada = ? AND HoraSalida = ? AND Disponible = ?");
+$updateStmt = $mysqli->prepare("UPDATE Restriccion_Curso SET Disponible = ? WHERE ID_C = ? AND Dia = ? AND HoraEntrada = ? AND HoraSalida = ? AND Disponible = ?");
+$insertStmt = $mysqli->prepare("INSERT INTO Restriccion_Curso (ID_C, Dia, HoraEntrada, HoraSalida, Disponible) VALUES (?, ?, ?, ?, ?)");
 
 if (!$selectStmt || !$updateStmt || !$insertStmt) {
     $msg = 'Error al preparar la consulta: ' . $mysqli->error;
@@ -57,10 +57,10 @@ foreach ($datos as $d) {
     }
 
     $dia = intval($d['dia']);
-    $hora = intval($d['hora']);
+    $hora = $d['hora'];
     $activo = intval($d['activo']);
 
-    $selectStmt->bind_param('iiii', $idCurso, $dia, $hora, $activo);
+    $selectStmt->bind_param('iisi', $idCurso, $dia, $hora, $activo);
     if (!$selectStmt->execute()) {
         $msg = 'Error al ejecutar SELECT: ' . $selectStmt->error;
         error_log($msg);
@@ -73,7 +73,7 @@ foreach ($datos as $d) {
     $selectStmt->store_result();
 
     if ($selectStmt->num_rows > 0) {
-        $updateStmt->bind_param('iiii', $idCurso, $dia, $hora, $activo);
+        $updateStmt->bind_param('iisi', $idCurso, $dia, $hora, $activo);
         if (!$updateStmt->execute()) {
             $msg = 'Error al ejecutar UPDATE: ' . $updateStmt->error;
             error_log($msg);
@@ -83,7 +83,7 @@ foreach ($datos as $d) {
             exit;
         }
     } elseif ($activo === 1) {
-        $insertStmt->bind_param('iiii', $idCurso, $dia, $hora, $activo);
+        $insertStmt->bind_param('iisi', $idCurso, $dia, $hora, $activo);
         if (!$insertStmt->execute()) {
             $msg = 'Error al ejecutar INSERT: ' . $insertStmt->error;
             error_log($msg);

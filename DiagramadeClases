@@ -82,7 +82,8 @@ class Restriccion_Docente {
   ID_Rd : int
   ID_D : int 
   Dia : int
-  Hora : int
+  HoraEntrada : time
+  HoraSalida : time
   Disponible : bool
   
   ID_D (FK) ID_D Docente
@@ -92,7 +93,8 @@ class Restriccion_Curso {
   ID_Rc : int
   ID_C : int
   Dia : int
-  Hora : int
+  HoraEntrada : time
+  HoraSalida : time
   Disponible : bool
   
   ID_C (FK) ID_C Curso

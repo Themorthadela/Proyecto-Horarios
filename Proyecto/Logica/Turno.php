@@ -50,4 +50,10 @@
             return $TurnoBD->Listar();
         }
 
+        public function ObtenerTurnoCurso($idCurso) {
+            include_once 'Persistencia/TurnoBD.php';
+            $turnoBD = new TurnoBD();
+            return $turnoBD->ObtenerTurnoCurso($idCurso);
+        }
+
     }

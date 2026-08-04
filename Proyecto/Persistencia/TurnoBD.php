@@ -2,28 +2,29 @@
 include_once 'Conexion.php';
     class TurnoBD extends Conexion {
 
-public function Agregar($idcurso, $hora_entrada, $hora_salida, $turno) {
-    $this->Conectar();
+        public function Agregar($idcurso, $hora_I, $hora_F, $turno) {
+            $this->Conectar();
 
-    $sql = "INSERT INTO Turno (ID_C, HoraEntrada, HoraSalida, Turno)
-            VALUES ('$idcurso', '$hora_entrada', '$hora_salida', '$turno')";
+            $sql = "INSERT INTO Turno (ID_C, HoraEntrada, HoraSalida, Turno)
+                    VALUES ('$idcurso', '$hora_I', '$hora_F', '$turno')";
 
-    $stmt = $this->con->prepare($sql);
+            $stmt = $this->con->prepare($sql);
 
-    if (!$stmt) {
-        echo 'Error al preparar statement: ' . $this->con->error;
-        $this->Desconectar();
-        return false;
-    }
+            if (!$stmt) {
+                echo 'Error al preparar statement: ' . $this->con->error;
+                $this->Desconectar();
+                return false;
+            }
 
-    if (!$stmt->execute()) {
-        echo 'Error al ejecutar: ' . $stmt->error;
-        return false;
-    }
+            if (!$stmt->execute()) {
+                echo 'Error al ejecutar: ' . $stmt->error;
+                $this->Desconectar();
+                return false;
+            }   
 
-    return true;
-}
-        
+            $this->Desconectar();
+            return true;
+        }
 
         public function Listar() {
             $sql = "SELECT c.*, t.Turno 
@@ -42,5 +43,18 @@ public function Agregar($idcurso, $hora_entrada, $hora_salida, $turno) {
             }
             return $turnos;
         }
-    }
+
+        public function ObtenerTurnoCurso($idCurso) {
+            $sql = "SELECT *
+                FROM Turno
+                WHERE ID_C = ?";
+
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bind_param("i",$idCurso);
+            $stmt->execute();
+
+            return $stmt->get_result()->fetch_assoc();
+        }
+
+}
 

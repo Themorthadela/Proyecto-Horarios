@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   web:
@@ -9,23 +9,38 @@ services:
       - ./Proyecto:/var/www/html
     depends_on:
       - db
+    networks:
+      - app-network
 
   db:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: institutobd
-      MYSQL_USER: Admin
-      MYSQL_PASSWORD: 126658
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "institutobd"
+      MYSQL_USER: "Admin"
+      MYSQL_PASSWORD: "126658"
     ports:
       - "3307:3306"
-    volumes:  #al agregarle volumen a la base quiero decir que le estoy dando un espacio donde persistir los cambios de la misma
+    volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     ports:
       - "8080:80"
     environment:
-      PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: root
+      PMA_HOST: "db"
+      PMA_PORT: "3306"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+volumes:
+  mysql_data:
+
+networks:
+  app-network:
+    driver: bridge
