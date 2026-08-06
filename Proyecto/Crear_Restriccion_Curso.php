@@ -1,305 +1,357 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <form method="post">
-    <label>Curso:</label>
-    <?php
-    include_once "Logica/Curso.php";
-    $curso = new Curso();
-    $cursos = $curso->ListarCursos();
-    ?>
-    <select name="curso" required>
-        <option value="">Seleccione un curso</option>
-        <?php foreach ($cursos as $c) { ?>
-            <option value="<?php echo $c['ID_C']; ?>">
-                <?php echo $c['Nombre']; ?>
-            </option>
-        <?php } ?>
-    </select>
+<?php
+include_once __DIR__ . "/Logica/Curso.php";
+include_once __DIR__ . "/Logica/Turno.php";
+include_once __DIR__ . "/Logica/Restricciones/Restriccion_Curso.php";
 
-    <button type="submit" name="enviar">Mostrar</button>
+$curso = new Curso();
+$cursos = $curso->ListarCursos();
 
-    <?php
-    include_once "Logica/Curso.php";
-
-    $cursoSeleccionado = null;
-    if (isset($_POST['curso'])) {
-        $cursoSeleccionado = $_POST['curso'];
-    }
-    if (isset($_POST['enviar'])) {
-    
-    echo "Curso: " . $cursoSeleccionado; 
-    echo "<br>";
-    $cursos = $curso->ObtenerCursoPorId($cursoSeleccionado);
-    if ($cursos) {
-        echo "Nombre: " . $cursos['Nombre'] . "<br>";
-        echo "Horas Diarias: " . $cursos['CantidadHoras'] . "<br>";
-        echo "Dias: " . $cursos['Dias'] . "<br>";
-        echo "Horas Semanales: " . $cursos['Semanal'] . "<br>";
-        echo "Activo: " . $cursos['Activo'] . "<br>";
-        echo "Hora de Entrada: " . $cursos['HoraEntrada'] . "<br>";
-        echo "Hora de Salida: " . $cursos['HoraSalida'] . "<br>";
-        echo "Turno: " . $cursos['Turno'] . "<br>";
-    } else {
-        echo "Curso no encontrado.";
-    }
-
-    }
-
-    if ($cursoSeleccionado) {
-
-        $cursos = $curso->ObtenerCursoPorId($cursoSeleccionado);
-
-        $horas = $cursos['CantidadHoras'];
-        $dias = $cursos['Dias'];
-        $horaEntrada = $cursos['HoraEntrada'];
-
-
-$idCurso = $cursoSeleccionado ?? 0;
-
-    include_once "Logica/Turno.php";
-
-        $turno = new Turno();
-
-        $datosTurno = $turno->ObtenerTurnoCurso($cursoSeleccionado);
-
-        $horaEntrada = $datosTurno["HoraEntrada"];
-        $horaSalida  = $datosTurno["HoraSalida"];
-
-// Generar bloques horarios de 45 minutos
-include_once "Logica/Restricciones/Restriccion_Curso.php";
-
-$restriccion = new Restriccion_Curso();
-
-$datos = $restriccion->ObtenerRestriccionesCurso($cursoSeleccionado);
-
-//mapeo de horas y días
+$cursoSeleccionado = isset($_POST['curso']) ? (int) $_POST['curso'] : 0;
+$datosCurso = null;
+$mensajeError = '';
 $mapeoHoras = [];
-
-$inicio = strtotime($horaEntrada);
-$finCurso = strtotime($horaSalida);
-
-while ($inicio < $finCurso) {
-
-    $finBloque = $inicio + 45 * 60;
-
-    if ($finBloque > $finCurso) {
-        break;
-    }
-
-    $mapeoHoras[] =
-        date("H:i",$inicio)." - ".
-        date("H:i",$finBloque);
-
-    $inicio = $finBloque;
-
-    // Recreo de 5 minutos cada dos bloques
-    if (count($mapeoHoras) % 2 == 0) {
-        $inicio += 5 * 60;
-    }
-}
-
-$horas = count($mapeoHoras);
-
 $activo = [];
+$dias = 0;
+$idCurso = $cursoSeleccionado;
 
-if (!empty($datos)) {
-
-    // El curso ya tiene horarios guardados
-    foreach ($datos as $fila) {
-
-        if (!in_array($fila['Hora'], $mapeoHoras)) {
-            $mapeoHoras[] = $fila['Hora'];
-        }
-
-        $indiceHora = array_search($fila['Hora'], $mapeoHoras) + 1;
-
-        $activo[$fila['Dia']][$indiceHora] = $fila['Activo'];
-    }
-
-    $temp = [];
-    foreach ($mapeoHoras as $i => $hora) {
-        $temp[$i + 1] = $hora;
-    }
-
-    $mapeoHoras = $temp;
-    $horas = count($mapeoHoras);
-
-} else {
-
-    // No existen horarios, se generan automáticamente
-    $inicio = strtotime($horaEntrada);
-
-    for ($i = 1; $i <= $horas; $i++) {
-
-        $fin = $inicio + (45 * 60);
-
-        $mapeoHoras[$i] =
-            date("H:i", $inicio) .
-            " - " .
-            date("H:i", $fin);
-
-        $inicio = $fin;
-
-        if ($i % 2 == 0 && $i < $horas) {
-            $inicio += 5 * 60;
-        }
-    }
-}
-
-// Mapear días
 $mapeoDias = [
     1 => "Lunes",
     2 => "Martes",
     3 => "Miércoles",
     4 => "Jueves",
     5 => "Viernes",
-    6 => "Sábado"
+    6 => "Sábado",
+    7 => "Domingo"
 ];
 
-// Mostrar tabla de restricciones
-echo "<h2>Tabla de restricciones</h2>";
+if ($cursoSeleccionado > 0) {
+    $datosCurso = $curso->ObtenerCursoPorId($cursoSeleccionado);
 
-echo "<table border='1' cellpadding='10' cellspacing='0'>";
+    if (!$datosCurso) {
+        $mensajeError = 'Curso no encontrado.';
+    } else {
+        $dias = min((int) $datosCurso['Dias'], count($mapeoDias));
 
-// Encabezado
-echo "<tr>";
-echo "<th>Hora</th>";
+        $turno = new Turno();
+        $datosTurno = $turno->ObtenerTurnoCurso($cursoSeleccionado);
 
-for ($d = 1; $d <= $dias; $d++) {
-    echo "<th>{$mapeoDias[$d]}</th>";
-}
+        if (!$datosTurno) {
+            $mensajeError = 'No se encontró el turno asociado al curso.';
+        } else {
+            $horaEntrada = $datosTurno['HoraEntrada'];
+            $horaSalida = $datosTurno['HoraSalida'];
 
-echo "</tr>";
+            $inicio = strtotime($horaEntrada);
+            $finCurso = strtotime($horaSalida);
+            $numeroBloque = 1;
 
-// Filas
-for ($h = 1; $h <= $horas; $h++) {
+            if ($inicio === false || $finCurso === false || $finCurso <= $inicio) {
+                $mensajeError = 'El horario del turno no es válido.';
+            } else {
+                while ($inicio < $finCurso) {
+                    $finBloque = $inicio + (45 * 60);
 
-    echo "<tr>";
+                    if ($finBloque > $finCurso) {
+                        break;
+                    }
 
-    echo "<td>{$mapeoHoras[$h]}</td>";
+                    $mapeoHoras[$numeroBloque] = [
+                        'entrada' => date('H:i', $inicio),
+                        'salida' => date('H:i', $finBloque)
+                    ];
 
-    for ($d = 1; $d <= $dias; $d++) {
+                    $inicio = $finBloque;
 
-        $disponible = $activo[$d][$h] ?? 0;
+                    if ($numeroBloque % 2 === 0) {
+                        $inicio += 5 * 60;
+                    }
 
-        $color = ($disponible == 1) ? "red" : "green";
+                    $numeroBloque++;
+                }
 
-        echo "
-        <td>
-            <button
-                type='button'
-                class='bloque'
-                data-dia='{$d}'
-                data-hora='{$mapeoHoras[$h]}'
-                style='width:100%; height:40px; background-color:{$color}; border:none; cursor:pointer;'
-            ></button>
-        </td>";
+                $restriccion = new Restriccion_Curso();
+                $restriccionesGuardadas = $restriccion->ObtenerRestriccionesCurso($cursoSeleccionado);
+
+                foreach ($restriccionesGuardadas as $fila) {
+                    $diaGuardado = isset($fila['Dia']) ? (int) $fila['Dia'] : 0;
+                    $horaEntradaGuardada = isset($fila['HoraEntrada'])
+                        ? date('H:i', strtotime($fila['HoraEntrada']))
+                        : null;
+                    $horaSalidaGuardada = isset($fila['HoraSalida'])
+                        ? date('H:i', strtotime($fila['HoraSalida']))
+                        : null;
+                    $disponibleGuardado = isset($fila['Disponible'])
+                        ? (int) $fila['Disponible']
+                        : 0;
+
+                    if ($diaGuardado <= 0 || $horaEntradaGuardada === null || $horaSalidaGuardada === null) {
+                        continue;
+                    }
+
+                    foreach ($mapeoHoras as $indiceHora => $bloque) {
+                        if (
+                            $bloque['entrada'] === $horaEntradaGuardada &&
+                            $bloque['salida'] === $horaSalidaGuardada
+                        ) {
+                            $activo[$diaGuardado][$indiceHora] = $disponibleGuardado;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restricciones de curso</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
 
-    echo "</tr>";
-}
+        form {
+            margin-bottom: 20px;
+        }
 
-echo "</table>";
+        table {
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
 
-echo "<br><br>";
-echo "<button type='button' id='confirmar'>Confirmar</button>";
+        th,
+        td {
+            border: 1px solid #999;
+            padding: 8px;
+            text-align: center;
+        }
 
-    ?>
+        .encabezado-dia {
+            cursor: pointer;
+            user-select: none;
+        }
 
-    
+        .bloque {
+            width: 100%;
+            min-width: 85px;
+            height: 40px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .mensaje-error {
+            color: #b00020;
+            font-weight: bold;
+        }
+
+        .leyenda {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <form method="post">
+        <label for="curso"><strong>Curso:</strong></label>
+
+        <select id="curso" name="curso" required>
+            <option value="">Seleccione un curso</option>
+
+            <?php foreach ($cursos as $c): ?>
+                <option
+                    value="<?php echo (int) $c['ID_C']; ?>"
+                    <?php echo ((int) $c['ID_C'] === $cursoSeleccionado) ? 'selected' : ''; ?>
+                >
+                    <?php echo htmlspecialchars($c['Nombre'], ENT_QUOTES, 'UTF-8'); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
+        <button type="submit" name="enviar">Mostrar</button>
+    </form>
+
+    <?php if ($mensajeError !== ''): ?>
+        <p class="mensaje-error">
+            <?php echo htmlspecialchars($mensajeError, ENT_QUOTES, 'UTF-8'); ?>
+        </p>
+    <?php endif; ?>
+
+    <?php if ($datosCurso && $mensajeError === ''): ?>
+        <h2>Datos del curso</h2>
+
+        <p>
+            <strong>ID:</strong> <?php echo (int) $cursoSeleccionado; ?><br>
+            <strong>Nombre:</strong> <?php echo htmlspecialchars($datosCurso['Nombre'], ENT_QUOTES, 'UTF-8'); ?><br>
+            <strong>Horas diarias:</strong> <?php echo htmlspecialchars($datosCurso['CantidadHoras'], ENT_QUOTES, 'UTF-8'); ?><br>
+            <strong>Días:</strong> <?php echo (int) $datosCurso['Dias']; ?><br>
+            <strong>Horas semanales:</strong> <?php echo (int) $datosCurso['Semanal']; ?><br>
+            <strong>Activo:</strong> <?php echo (int) $datosCurso['Activo']; ?><br>
+            <strong>Hora de entrada:</strong> <?php echo htmlspecialchars($datosCurso['HoraEntrada'], ENT_QUOTES, 'UTF-8'); ?><br>
+            <strong>Hora de salida:</strong> <?php echo htmlspecialchars($datosCurso['HoraSalida'], ENT_QUOTES, 'UTF-8'); ?><br>
+            <strong>Turno:</strong> <?php echo htmlspecialchars($datosCurso['Turno'], ENT_QUOTES, 'UTF-8'); ?>
+        </p>
+
+        <h2>Tabla de restricciones</h2>
+
+        <p class="leyenda">
+            <strong>Verde:</strong> disponible |
+            <strong>Rojo:</strong> restringido
+        </p>
+
+        <?php if (empty($mapeoHoras)): ?>
+            <p class="mensaje-error">No se pudieron generar bloques horarios para este curso.</p>
+        <?php else: ?>
+            <table id="tabla-restricciones">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+
+                        <?php for ($d = 1; $d <= $dias; $d++): ?>
+                            <th class="encabezado-dia" data-dia="<?php echo $d; ?>">
+                                <?php echo htmlspecialchars($mapeoDias[$d], ENT_QUOTES, 'UTF-8'); ?>
+                            </th>
+                        <?php endfor; ?>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <?php foreach ($mapeoHoras as $h => $bloque): ?>
+                        <tr>
+                            <td>
+                                <?php
+                                echo htmlspecialchars(
+                                    $bloque['entrada'] . ' - ' . $bloque['salida'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                );
+                                ?>
+                            </td>
+
+                            <?php for ($d = 1; $d <= $dias; $d++): ?>
+                                <?php
+                                $restringido = $activo[$d][$h] ?? 0;
+                                $color = ($restringido === 1) ? 'red' : 'green';
+                                ?>
+
+                                <td>
+                                    <button
+                                        type="button"
+                                        class="bloque"
+                                        data-dia="<?php echo $d; ?>"
+                                        data-entrada="<?php echo htmlspecialchars($bloque['entrada'], ENT_QUOTES, 'UTF-8'); ?>"
+                                        data-salida="<?php echo htmlspecialchars($bloque['salida'], ENT_QUOTES, 'UTF-8'); ?>"
+                                        data-activo="<?php echo $restringido; ?>"
+                                        style="background-color: <?php echo $color; ?>;"
+                                        aria-label="Cambiar restricción del día <?php echo $d; ?>, bloque <?php echo $h; ?>"
+                                    ></button>
+                                </td>
+                            <?php endfor; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <br>
+            <button type="button" id="confirmar">Confirmar</button>
+        <?php endif; ?>
+    <?php endif; ?>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            const botones = document.querySelectorAll(".bloque");
+            const encabezados = document.querySelectorAll(".encabezado-dia");
+            const idCurso = <?php echo json_encode($idCurso); ?>;
 
-            let botones = document.querySelectorAll(".bloque");
-            let idCurso = <?php echo $idCurso; ?>;
+            botones.forEach(function (boton) {
+                boton.addEventListener("click", function () {
+                    const restringido = this.dataset.activo === "1";
 
-            botones.forEach(btn => {
-                btn.addEventListener("click", function () {
-                    this.style.backgroundColor =
-                        this.style.backgroundColor === "green" ? "red" : "green";
+                    this.dataset.activo = restringido ? "0" : "1";
+                    this.style.backgroundColor = restringido ? "green" : "red";
                 });
             });
 
-            // Click en encabezado (columna completa)
-            let headers = document.querySelectorAll("th");
-            headers.forEach((th, index) => {
-                if (index === 0) return;
+            encabezados.forEach(function (encabezado) {
+                encabezado.addEventListener("click", function () {
+                    const dia = this.dataset.dia;
+                    const botonesDia = document.querySelectorAll(
+                        ".bloque[data-dia='" + dia + "']"
+                    );
 
-                th.style.cursor = "pointer";
-                th.addEventListener("click", function () {
-                    let filas = document.querySelectorAll("table tr");
-                    let anyGreen = false;
+                    let existeDisponible = false;
 
-                    filas.forEach((fila, i) => {
-                        if (i === 0) return;
-                        let boton = fila.children[index].querySelector("button");
-                        if (boton && boton.style.backgroundColor === "green") {
-                            anyGreen = true;
+                    botonesDia.forEach(function (boton) {
+                        if (boton.dataset.activo === "0") {
+                            existeDisponible = true;
                         }
                     });
 
-                    filas.forEach((fila, i) => {
-                        if (i === 0) return;
-                        let boton = fila.children[index].querySelector("button");
-                        if (boton) {
-                            boton.style.backgroundColor = anyGreen ? "red" : "green";
+                    botonesDia.forEach(function (boton) {
+                        boton.dataset.activo = existeDisponible ? "1" : "0";
+                        boton.style.backgroundColor = existeDisponible ? "red" : "green";
+                    });
+                });
+            });
+
+            const botonConfirmar = document.getElementById("confirmar");
+
+            if (botonConfirmar) {
+                botonConfirmar.addEventListener("click", function () {
+                    const datos = [];
+
+                    botones.forEach(function (boton) {
+                        datos.push({
+                            dia: Number.parseInt(boton.dataset.dia, 10),
+                            hora_I: boton.dataset.entrada,
+                            hora_F: boton.dataset.salida,
+                            activo: Number.parseInt(boton.dataset.activo, 10)
+                        });
+                    });
+
+                    const formData = new FormData();
+                    formData.append("datos", JSON.stringify(datos));
+                    formData.append("curso", idCurso);
+
+                    fetch("guardar_restricciones_curso.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(async function (response) {
+                        const texto = await response.text();
+
+                        let respuesta;
+
+                        try {
+                            respuesta = JSON.parse(texto);
+                        } catch (error) {
+                            console.error("Respuesta recibida:", texto);
+                            throw new Error("El servidor no devolvió un JSON válido.");
                         }
+
+                        if (!response.ok) {
+                            throw new Error(respuesta.error || "Error HTTP " + response.status);
+                        }
+
+                        return respuesta;
+                    })
+                    .then(function (respuesta) {
+                        if (respuesta.success) {
+                            alert("Restricciones guardadas correctamente.");
+                        } else {
+                            alert("Error al guardar: " + (respuesta.error || "Error desconocido"));
+                        }
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                        alert("No se pudieron guardar las restricciones: " + error.message);
                     });
                 });
-            });
-
-            // Click en botón confirmar
-            document.getElementById("confirmar")?.addEventListener("click", function () {
-                let datos = [];
-
-                botones.forEach(btn => {
-                    let activo = btn.style.backgroundColor === "red" ? 1 : 0;
-
-                    datos.push({
-                        dia: btn.dataset.dia,
-                        hora: btn.dataset.hora,
-                        activo: activo
-                    });
-                });
-
-                let formData = new FormData();
-                formData.append("datos", JSON.stringify(datos));
-                formData.append("curso", idCurso);
-
-                fetch("guardar_restricciones_curso.php", {
-                    method: "POST",
-                    body: formData
-                })
-                .then(async response => {
-                    const text = await response.text();
-                    try {
-                        return JSON.parse(text);
-                    } catch (err) {
-                        console.error('Respuesta inválida de guardar_restricciones_curso.php:', text);
-                        throw new Error('Respuesta inválida: ' + text);
-                    }
-                })
-                .then(data => {
-                    if (data.success) {
-                        alert("Restricciones guardadas correctamente.");
-                    } else {
-                        alert("Error al guardar: " + data.error);
-                    }
-                })
-                .catch(error => {
-                    alert("Error de conexión: " + error.message);
-                });
-            });
+            }
         });
     </script>
-
-
 </body>
 </html>

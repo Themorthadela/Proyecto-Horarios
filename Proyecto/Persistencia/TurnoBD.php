@@ -27,6 +27,8 @@ include_once 'Conexion.php';
         }
 
         public function Listar() {
+            $this->Conectar();
+            
             $sql = "SELECT c.*, t.Turno 
                     FROM Curso c, Turno t 
                     WHERE c.ID_C = t.ID_C";
@@ -49,7 +51,9 @@ include_once 'Conexion.php';
                 FROM Turno
                 WHERE ID_C = ?";
 
-            $stmt = $this->conexion->prepare($sql);
+            $this->Conectar();
+
+            $stmt = $this->con->prepare($sql);
             $stmt->bind_param("i",$idCurso);
             $stmt->execute();
 

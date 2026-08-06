@@ -1,101 +1,150 @@
 <?php
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('log_errors', 1);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 ini_set('error_log', 'php://stderr');
+
 header('Content-Type: application/json; charset=utf-8');
 
-include_once "Persistencia/Conexion.php";
+include_once __DIR__ . '/Persistencia/Conexion.php';
+
+function responderJson($success, $error = null, $codigoHttp = 200)
+{
+    http_response_code($codigoHttp);
+
+    $respuesta = ['success' => $success];
+
+    if ($error !== null) {
+        $respuesta['error'] = $error;
+    }
+
+    echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $msg = 'Método no permitido';
-    error_log($msg);
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => $msg]);
-    exit;
+    responderJson(false, 'Método no permitido.', 405);
+}
+
+$idCurso = isset($_POST['curso']) ? (int) $_POST['curso'] : 0;
+$datosJson = $_POST['datos'] ?? '';
+$datos = json_decode($datosJson, true);
+
+if (json_last_error() !== JSON_ERROR_NONE) {
+    responderJson(false, 'JSON inválido: ' . json_last_error_msg(), 400);
+}
+
+if ($idCurso <= 0 || !is_array($datos)) {
+    responderJson(false, 'Datos incompletos.', 400);
 }
 
 $con = new Conexion();
 $mysqli = $con->Conectar();
 
-$idCurso = isset($_POST['curso']) ? intval($_POST['curso']) : 0;
-$datos = isset($_POST['datos']) ? json_decode($_POST['datos'], true) : null;
+$selectStmt = null;
+$updateStmt = null;
+$insertStmt = null;
 
-if (isset($_POST['datos']) && json_last_error() !== JSON_ERROR_NONE) {
-    $msg = 'JSON inválido: ' . json_last_error_msg();
-    error_log($msg . ' - datos:' . $_POST['datos']);
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => $msg]);
-    exit;
-}
+try {
+    $selectStmt = $mysqli->prepare("\n        SELECT ID_Rc\n        FROM Restriccion_Curso\n        WHERE ID_C = ?\n          AND Dia = ?\n          AND HoraEntrada = ?\n          AND HoraSalida = ?\n        LIMIT 1\n    ");
 
-if (!$idCurso || !is_array($datos)) {
-    $msg = 'Faltan datos o JSON inválido';
-    error_log($msg . ' curso:' . ($_POST['curso'] ?? '') . ' datos:' . ($_POST['datos'] ?? ''));
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => $msg]);
-    exit;
-}
+    $updateStmt = $mysqli->prepare("\n        UPDATE Restriccion_Curso\n        SET Disponible = ?\n        WHERE ID_C = ?\n          AND Dia = ?\n          AND HoraEntrada = ?\n          AND HoraSalida = ?\n    ");
 
-$selectStmt = $mysqli->prepare("SELECT ID_Rc FROM Restriccion_Curso WHERE ID_C = ? AND Dia = ? AND HoraEntrada = ? AND HoraSalida = ? AND Disponible = ?");
-$updateStmt = $mysqli->prepare("UPDATE Restriccion_Curso SET Disponible = ? WHERE ID_C = ? AND Dia = ? AND HoraEntrada = ? AND HoraSalida = ? AND Disponible = ?");
-$insertStmt = $mysqli->prepare("INSERT INTO Restriccion_Curso (ID_C, Dia, HoraEntrada, HoraSalida, Disponible) VALUES (?, ?, ?, ?, ?)");
+    $insertStmt = $mysqli->prepare("\n        INSERT INTO Restriccion_Curso\n            (ID_C, Dia, HoraEntrada, HoraSalida, Disponible)\n        VALUES\n            (?, ?, ?, ?, ?)\n    ");
 
-if (!$selectStmt || !$updateStmt || !$insertStmt) {
-    $msg = 'Error al preparar la consulta: ' . $mysqli->error;
-    error_log($msg);
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => $msg]);
-    exit;
-}
-
-$mysqli->begin_transaction();
-
-foreach ($datos as $d) {
-    if (!isset($d['dia'], $d['hora'], $d['activo'])) {
-        continue;
+    if (!$selectStmt || !$updateStmt || !$insertStmt) {
+        throw new Exception('Error al preparar las consultas: ' . $mysqli->error);
     }
 
-    $dia = intval($d['dia']);
-    $hora = $d['hora'];
-    $activo = intval($d['activo']);
+    $mysqli->begin_transaction();
 
-    $selectStmt->bind_param('iisi', $idCurso, $dia, $hora, $activo);
-    if (!$selectStmt->execute()) {
-        $msg = 'Error al ejecutar SELECT: ' . $selectStmt->error;
-        error_log($msg);
+    foreach ($datos as $indice => $fila) {
+        if (
+            !isset($fila['dia'], $fila['hora_I'], $fila['hora_F'], $fila['activo'])
+        ) {
+            throw new Exception('El bloque número ' . ($indice + 1) . ' está incompleto.');
+        }
+
+        $dia = (int) $fila['dia'];
+        $horaEntrada = trim((string) $fila['hora_I']);
+        $horaSalida = trim((string) $fila['hora_F']);
+        $disponible = (int) $fila['activo'];
+
+        if ($dia < 1 || $dia > 7) {
+            throw new Exception('Día inválido en el bloque número ' . ($indice + 1) . '.');
+        }
+
+        if (!preg_match('/^\d{2}:\d{2}$/', $horaEntrada) || !preg_match('/^\d{2}:\d{2}$/', $horaSalida)) {
+            throw new Exception('Formato de hora inválido en el bloque número ' . ($indice + 1) . '.');
+        }
+
+        $disponible = ($disponible === 1) ? 1 : 0;
+
+        $selectStmt->bind_param(
+            'iiss',
+            $idCurso,
+            $dia,
+            $horaEntrada,
+            $horaSalida
+        );
+
+        if (!$selectStmt->execute()) {
+            throw new Exception($selectStmt->error);
+        }
+
+        $selectStmt->store_result();
+        $existe = $selectStmt->num_rows > 0;
+        $selectStmt->free_result();
+
+        if ($existe) {
+            $updateStmt->bind_param(
+                'iiiss',
+                $disponible,
+                $idCurso,
+                $dia,
+                $horaEntrada,
+                $horaSalida
+            );
+
+            if (!$updateStmt->execute()) {
+                throw new Exception($updateStmt->error);
+            }
+        } else {
+            $insertStmt->bind_param(
+                'iissi',
+                $idCurso,
+                $dia,
+                $horaEntrada,
+                $horaSalida,
+                $disponible
+            );
+
+            if (!$insertStmt->execute()) {
+                throw new Exception($insertStmt->error);
+            }
+        }
+    }
+
+    $mysqli->commit();
+    responderJson(true);
+} catch (Throwable $e) {
+    if ($mysqli->errno === 0 || $mysqli->ping()) {
         $mysqli->rollback();
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => $msg]);
-        exit;
     }
 
-    $selectStmt->store_result();
-
-    if ($selectStmt->num_rows > 0) {
-        $updateStmt->bind_param('iisi', $idCurso, $dia, $hora, $activo);
-        if (!$updateStmt->execute()) {
-            $msg = 'Error al ejecutar UPDATE: ' . $updateStmt->error;
-            error_log($msg);
-            $mysqli->rollback();
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => $msg]);
-            exit;
-        }
-    } elseif ($activo === 1) {
-        $insertStmt->bind_param('iisi', $idCurso, $dia, $hora, $activo);
-        if (!$insertStmt->execute()) {
-            $msg = 'Error al ejecutar INSERT: ' . $insertStmt->error;
-            error_log($msg);
-            $mysqli->rollback();
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => $msg]);
-            exit;
-        }
+    responderJson(false, $e->getMessage(), 500);
+} finally {
+    if ($selectStmt instanceof mysqli_stmt) {
+        $selectStmt->close();
     }
+
+    if ($updateStmt instanceof mysqli_stmt) {
+        $updateStmt->close();
+    }
+
+    if ($insertStmt instanceof mysqli_stmt) {
+        $insertStmt->close();
+    }
+
+    $con->Desconectar();
 }
-
-$mysqli->commit();
-
-echo json_encode(['success' => true]);
-?>
