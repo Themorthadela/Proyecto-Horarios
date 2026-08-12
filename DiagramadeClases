@@ -61,14 +61,22 @@ class Turno {
 
 class HorarioFinal {
   ID_Hc : int
+  ID_Am : int
+  Año : date
+  Dia : int
+  HoraEntrada : time
+  HoraSalida : time
+  Disponible : bool
+
+  ID_Am (FK) ID_Am Asignacion_Materia
+}
+
+class Asignacion_Materia {
+  ID_Am : int
   ID_C : int
   ID_D : int
   ID_M : int
-  Año : date
-  Dia : int
-  Hora : int
-  Disponible : bool
-
+  
   ID_C (FK) ID_C Curso
   ID_D (FK) ID_D Docente
   ID_M (FK) ID_M Materia
@@ -84,8 +92,7 @@ class Restriccion_Docente {
   Dia : int
   HoraEntrada : time
   HoraSalida : time
-  Disponible : bool
-  
+
   ID_D (FK) ID_D Docente
 }
 

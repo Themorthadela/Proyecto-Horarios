@@ -7,61 +7,47 @@ class Restriccion_Curso
     private $hora_F;
     private $disponible;
 
-    public function SetIdCurso($id_c)
-    {
+    public function SetIdCurso($id_c) {
         $this->id_c = $id_c;
     }
-
-    public function GetIdCurso()
-    {
+    public function GetIdCurso() {
         return $this->id_c;
     }
 
-    public function SetDia($dia)
-    {
+    public function SetDia($dia) {
         $this->dia = $dia;
     }
-
-    public function GetDia()
-    {
+    public function GetDia() {
         return $this->dia;
     }
 
-    public function SetHoraI($hora_I)
-    {
+    public function SetHoraI($hora_I) {
         $this->hora_I = $hora_I;
     }
-
-    public function GetHoraI()
-    {
+    public function GetHoraI() {
         return $this->hora_I;
     }
 
-    public function SetHoraF($hora_F)
-    {
+    public function SetHoraF($hora_F) {
         $this->hora_F = $hora_F;
     }
-
-    public function GetHoraF()
-    {
+    public function GetHoraF() {
         return $this->hora_F;
     }
 
-    public function SetDisponible($disponible)
-    {
+    public function SetDisponible($disponible) {
         $this->disponible = $disponible;
     }
 
-    public function GetDisponible()
-    {
+    public function GetDisponible() {
         return $this->disponible;
     }
 
-    public function AgregarRestriccion()
-    {
+    public function AgregarRestriccion()   {
+
         include_once __DIR__ . '/../../Persistencia/Restricciones/Restriccion_CursoBD.php';
 
-        $restriccionBD = new Restriccion_CursoBD();
+    $restriccionBD = new Restriccion_CursoBD();
 
         return $restriccionBD->Agregar(
             $this->id_c,
@@ -72,16 +58,16 @@ class Restriccion_Curso
         );
     }
 
-    public function ListarRestricciones($idCurso)
-    {
+    public function ListarRestricciones($idCurso)   {
+
         include_once __DIR__ . '/../../Persistencia/Restricciones/Restriccion_CursoBD.php';
 
         $restriccionBD = new Restriccion_CursoBD();
         return $restriccionBD->ListarCurso($idCurso);
     }
 
-    public function ObtenerRestriccionesCurso($idCurso)
-    {
+    public function ObtenerRestriccionesCurso($idCurso)  {
+        
         include_once __DIR__ . '/../../Persistencia/Restricciones/Restriccion_CursoBD.php';
 
         $restriccionBD = new Restriccion_CursoBD();

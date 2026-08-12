@@ -1,38 +1,48 @@
 <?php
-include_once "Conexion.php";
+include_once __DIR__ . '/../Conexion.php';
 
     class Restriccion_DocenteBD extends Conexion {
 
-        public function Agregar($dia, $hora, $disponible) {
+        public function Agregar($id_d, $dia, $hora_I, $hora_F) {
             $this->Conectar();
 
-            $sql = "INSERT INTO Restriccion_Docente (Dia, Hora, Disponible) VALUES (?, ?, ?)";
+            $sql = "
+                INSERT INTO Restriccion_Docente
+                    (ID_D, Dia, HoraEntrada, HoraSalida)
+                VALUES
+                    (?, ?, ?, ?)
+            ";
 
             $stmt = $this->con->prepare($sql);
+
             if (!$stmt) {
-                echo 'Error al preparar statement: ' . $this->con->error;
+                $error = $this->con->error;
                 $this->Desconectar();
-            return false;
+                throw new Exception('Error al preparar la consulta: ' . $error);
             }
-                // tipos: i (dia), i (hora), i (disponible)
-            $stmt->bind_param('iii', $dia, $hora, $disponible);
-            if ($stmt->execute()) {
-                echo 'registro exitoso';
-            } else {
-                echo 'Error: '.$stmt->error;
+
+            $stmt->bind_param('iiss', $id_d, $dia, $hora_I, $hora_F);
+
+            $resultado = $stmt->execute();
+
+            if (!$resultado) {
+                $error = $stmt->error;
+                $stmt->close();
+                $this->Desconectar();
+                throw new Exception('Error al guardar la restricción: ' . $error);
             }
 
             $stmt->close();
             $this->Desconectar();
             return true;
-        } 
+        }
 
-        public function Listar($idDocente, $idCurso) {
+        public function Listar($idDocente) {
             $this->Conectar();
             
-            $sql = 'SELECT * FROM Restriccion_Docente WHERE ID_D = ? AND ID_C = ?';
+            $sql = 'SELECT * FROM Restriccion_Docente WHERE ID_D = ?';
             $stmt = $this->con->prepare($sql);
-            $stmt->bind_param('ii', $idDocente, $idCurso);
+            $stmt->bind_param('i', $idDocente);
             $stmt->execute();
 
             $result = $stmt->get_result();
