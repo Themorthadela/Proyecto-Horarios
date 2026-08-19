@@ -1,0 +1,30 @@
+html {
+    min-height: 100%;
+    background-color: #e8ecef;
+}
+
+body {
+    position: relative;
+    min-height: 100vh;
+    box-sizing: border-box;
+    color: #20252a;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.72)),
+        url("../Imagenes/Polo%20dibujo.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+body > * {
+    position: relative;
+    z-index: 1;
+}

@@ -49,27 +49,11 @@ asort($franjas);
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="stylesheet" href="Estilo/General.css">
+    <link rel="stylesheet" href="Estilo/Formularios.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generar horarios</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 2rem; color: #222; }
-        form { display: flex; gap: 1rem; align-items: end; flex-wrap: wrap; margin-bottom: 1.5rem; }
-        label { display: grid; gap: .35rem; font-weight: bold; }
-        select, input, button { padding: .55rem; font: inherit; }
-        button { cursor: pointer; background: #1769aa; color: white; border: 0; border-radius: 4px; }
-        button.secundario { background: #555; }
-        .mensaje { padding: .8rem; margin: 1rem 0; border-radius: 4px; background: #e8f5e9; }
-        .error { background: #ffebee; color: #a40000; }
-        .advertencia { background: #fff8e1; }
-        .tabla { overflow-x: auto; }
-        table { border-collapse: collapse; width: 100%; min-width: 760px; }
-        th, td { border: 1px solid #bbb; padding: .65rem; text-align: center; }
-        th { background: #eee; }
-        td { height: 3.5rem; }
-        small { display: block; margin-top: .25rem; color: #555; }
-        nav { margin-bottom: 1rem; }
-    </style>
 </head>
 <body>
     <nav><a href="index.php">Volver al inicio</a></nav>

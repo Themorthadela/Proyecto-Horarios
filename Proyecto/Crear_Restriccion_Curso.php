@@ -106,19 +106,12 @@ if ($cursoSeleccionado > 0) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="stylesheet" href="Estilo/General.css">
+    <link rel="stylesheet" href="Estilo/Formularios.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restricciones de curso</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        form {
-            margin-bottom: 20px;
-        }
-
         table {
             border-collapse: collapse;
             margin-top: 15px;
@@ -152,9 +145,37 @@ if ($cursoSeleccionado > 0) {
         .leyenda {
             margin-top: 10px;
         }
+
+        .restricciones-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 280px;
+            gap: 12px 24px;
+            width: min(100%, 1100px);
+            margin: 24px auto 0;
+            align-items: start;
+        }
+
+        .titulo-tabla, .leyenda, #tabla-restricciones, #confirmar { grid-column: 1; }
+        .titulo-tabla { grid-row: 1; margin: 0; }
+        .leyenda { grid-row: 2; }
+        #tabla-restricciones { grid-row: 3 / span 2; }
+        #confirmar { grid-row: 5; }
+        .titulo-datos, .detalle-curso { grid-column: 2; padding-left: 20px; padding-right: 20px; background: var(--blanco); }
+        .titulo-datos { grid-row: 1; margin: 0; padding-top: 20px; border: 1px solid var(--borde); border-bottom: 0; border-radius: 16px 16px 0 0; }
+        .detalle-curso { grid-row: 2 / span 3; margin: 0; padding-bottom: 20px; border: 1px solid var(--borde); border-top: 0; border-radius: 0 0 16px 16px; line-height: 1.9; box-shadow: var(--sombra); }
+        .celda-bloque { height: 54px; padding: 0; }
+        .celda-bloque .bloque { display: block; width: 100%; height: 100%; min-height: 54px; border-radius: 0; }
+
+        @media (max-width: 850px) {
+            .restricciones-layout { display: block; }
+            .titulo-datos { margin-top: 20px; }
+            .detalle-curso { margin-bottom: 20px; }
+        }
     </style>
 </head>
 <body>
+    <nav><a href="index.php">Volver al panel</a></nav>
+    <h1>Restricciones de curso</h1>
     <form method="post">
         <label for="curso"><strong>Curso:</strong></label>
 
@@ -181,25 +202,29 @@ if ($cursoSeleccionado > 0) {
     <?php endif; ?>
 
     <?php if ($datosCurso && $mensajeError === ''): ?>
-        <h2>Datos del curso</h2>
+        <div class="restricciones-layout">
+        <h2 class="titulo-datos">Datos del curso</h2>
 
-        <p>
-            <strong>ID:</strong> <?php echo (int) $cursoSeleccionado; ?><br>
+        <p class="detalle-curso">
             <strong>Nombre:</strong> <?php echo htmlspecialchars($datosCurso['Nombre'], ENT_QUOTES, 'UTF-8'); ?><br>
             <strong>Horas diarias:</strong> <?php echo htmlspecialchars($datosCurso['CantidadHoras'], ENT_QUOTES, 'UTF-8'); ?><br>
-            <strong>Días:</strong> <?php echo (int) $datosCurso['Dias']; ?><br>
+            <strong>Días:</strong> <?php 
+                                        if ($datosCurso['Dias'] == 5) {
+                                            echo " Lunes a Viernes";
+                                        } elseif ($datosCurso['Dias'] == 6) {
+                                            echo " Lunes a Sábado";
+                                        }?><br>
             <strong>Horas semanales:</strong> <?php echo (int) $datosCurso['Semanal']; ?><br>
-            <strong>Activo:</strong> <?php echo (int) $datosCurso['Activo']; ?><br>
             <strong>Hora de entrada:</strong> <?php echo htmlspecialchars($datosCurso['HoraEntrada'], ENT_QUOTES, 'UTF-8'); ?><br>
             <strong>Hora de salida:</strong> <?php echo htmlspecialchars($datosCurso['HoraSalida'], ENT_QUOTES, 'UTF-8'); ?><br>
             <strong>Turno:</strong> <?php echo htmlspecialchars($datosCurso['Turno'], ENT_QUOTES, 'UTF-8'); ?>
         </p>
 
-        <h2>Tabla de restricciones</h2>
+        <h2 class="titulo-tabla">Tabla de restricciones</h2>
 
         <p class="leyenda">
-            <strong>Verde:</strong> disponible |
-            <strong>Rojo:</strong> restringido
+            <strong><FONT color="green">Verde</FONT>:</strong> disponible |
+            <strong><FONT color="red">Rojo</FONT>:</strong> restringido
         </p>
 
         <?php if (empty($mapeoHoras)): ?>
@@ -237,7 +262,7 @@ if ($cursoSeleccionado > 0) {
                                 $color = ($restringido === 1) ? 'red' : 'green';
                                 ?>
 
-                                <td>
+                                <td class="celda-bloque">
                                     <button
                                         type="button"
                                         class="bloque"
@@ -258,6 +283,7 @@ if ($cursoSeleccionado > 0) {
             <br>
             <button type="button" id="confirmar">Confirmar</button>
         <?php endif; ?>
+        </div>
     <?php endif; ?>
 
     <script>

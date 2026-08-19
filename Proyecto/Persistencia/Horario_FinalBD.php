@@ -125,12 +125,14 @@ class Horario_FinalBD extends Conexion
             foreach ($asignaciones as $asignacion) {
                 $faltan = (int) $asignacion['CargaHoraria'];
                 $horasSeguidas = max(1, min((int) $asignacion['HorasSe'], $faltan));
+                $ordenGrupo = 0;
 
                 while ($faltan > 0) {
                     $cantidad = min($horasSeguidas, $faltan);
                     $grupos[] = [
                         'asignacion' => $asignacion,
                         'cantidad' => $cantidad,
+                        'orden' => $ordenGrupo++,
                     ];
                     $faltan -= $cantidad;
                 }
@@ -138,7 +140,11 @@ class Horario_FinalBD extends Conexion
 
             // Los grupos más largos son los más difíciles de ubicar.
             usort($grupos, function ($a, $b) {
-                return $b['cantidad'] <=> $a['cantidad'];
+                $porCantidad = $b['cantidad'] <=> $a['cantidad'];
+                if ($porCantidad !== 0) {
+                    return $porCantidad;
+                }
+                return $a['orden'] <=> $b['orden'];
             });
 
             $insert = $this->con->prepare(

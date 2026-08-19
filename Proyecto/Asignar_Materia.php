@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="Estilo/General.css">
+    <link rel="stylesheet" href="Estilo/Formularios.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asignar Materia a Docente </title>
 </head>
 <body>
+    <nav><a href="index.php">Volver al panel</a></nav>
+    <h1>Asignar materia</h1>
     <form method="post">
 
         <label>Curso:</label>

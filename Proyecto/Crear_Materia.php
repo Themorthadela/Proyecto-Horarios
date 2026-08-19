@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="Estilo/General.css">
+    <link rel="stylesheet" href="Estilo/Formularios.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Materia</title>
 </head>
 <body>
+    <nav><a href="index.php">Volver al panel</a></nav>
+    <h1>Crear materia</h1>
     <form action="" method="post">
         <label for="nombre">Nombre de la materia:</label>
         <input type="text" id="nombre" name="nombre" required><br><br>
