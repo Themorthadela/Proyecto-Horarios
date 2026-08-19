@@ -16,7 +16,7 @@ class MateriaBD extends Conexion {
             return false;
         }
 
-        // tipos: i (area), s (nombre), i (cargaHoraria), i (activo), s (tipoSalon)
+        // nombre, carga horaria, tipo de salón, activo y área
         $stmt->bind_param('sisii', $nombre, $cargaHoraria, $tipoSalon, $activo, $area);
         if ($stmt->execute()) {
             echo 'registro exitoso';

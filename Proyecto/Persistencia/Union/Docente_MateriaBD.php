@@ -1,5 +1,5 @@
 <?php
-    include_once 'Conexion.php';
+  include_once __DIR__ . "/../Conexion.php";
     class Docente_MateriaBD extends Conexion {
     public function Agregar($id_d, $id_m) {
         $this->Conectar();

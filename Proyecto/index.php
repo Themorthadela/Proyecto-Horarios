@@ -13,5 +13,7 @@
     <a href="Crear_Restriccion_Curso.php">Agregar Restricciones a curso</a>
     <a href="Crear_Restriccion_Docente.php">Agregar Restricciones a docente</a>
     <a href="Crear_Usuario.php">Crear Usuario</a>
+    <a href="Asignar_Materia.php">Asignar Materia a Docente</a>
+    <a href="GenerarHorario.php">Generar Horario</a>
 </body>
 </html>

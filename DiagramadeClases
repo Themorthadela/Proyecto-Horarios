@@ -62,6 +62,7 @@ class Turno {
 class HorarioFinal {
   ID_Hc : int
   ID_Am : int
+  ID_C : int
   Año : date
   Dia : int
   HoraEntrada : time
@@ -69,6 +70,7 @@ class HorarioFinal {
   Disponible : bool
 
   ID_Am (FK) ID_Am Asignacion_Materia
+  ID_C (FK) ID_C Curso
 }
 
 class Asignacion_Materia {
@@ -151,9 +153,10 @@ Curso "1" -- "*" Restriccion_Curso
 Docente "1" -- "*" Restriccion_Docente 
 Docente -right-|>  Usuario
 
-HorarioFinal "1" -right- "1" Docente
-HorarioFinal "1" -left- "1" Curso 
-HorarioFinal "1" -up- "1" Materia
+Asignacion_Materia "1" -right- "1" Docente
+Asignacion_Materia "1" -left- "1" Curso 
+Asignacion_Materia "1" -up- "1" Materia
+Asignacion_Materia "1" -- "1" HorarioFinal
 
 Docente_Materia .. Docente
 Docente_Materia .. Materia

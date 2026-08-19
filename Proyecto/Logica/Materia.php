@@ -51,8 +51,8 @@ class Materia {
         $MateriaBD-> Agregar(  
             $this->nombre,
             $this->cargaHoraria,
-            $this->activo,
             $this->tipoSalon,
+            $this->activo,
             $this->area
             );
     }
