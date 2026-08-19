@@ -93,6 +93,7 @@ class Horario_FinalBD extends Conexion
         }
 
         $this->Conectar();
+        $this->asegurarRelacionRestriccionHorario();
         $this->con->begin_transaction();
 
         try {
@@ -120,46 +121,71 @@ class Horario_FinalBD extends Conexion
             $restriccionesDocente = $this->obtenerRestriccionesDocente();
             $pendientes = [];
 
-            usort($asignaciones, function ($a, $b) {
-                return (int) $b['CargaHoraria'] <=> (int) $a['CargaHoraria'];
+            $grupos = [];
+            foreach ($asignaciones as $asignacion) {
+                $faltan = (int) $asignacion['CargaHoraria'];
+                $horasSeguidas = max(1, min((int) $asignacion['HorasSe'], $faltan));
+
+                while ($faltan > 0) {
+                    $cantidad = min($horasSeguidas, $faltan);
+                    $grupos[] = [
+                        'asignacion' => $asignacion,
+                        'cantidad' => $cantidad,
+                    ];
+                    $faltan -= $cantidad;
+                }
+            }
+
+            // Los grupos más largos son los más difíciles de ubicar.
+            usort($grupos, function ($a, $b) {
+                return $b['cantidad'] <=> $a['cantidad'];
             });
 
             $insert = $this->con->prepare(
                 'INSERT INTO HorarioFinal (ID_Am, Año, Dia, HoraEntrada, HoraSalida, Disponible)
                  VALUES (?, ?, ?, ?, ?, 1)'
             );
+            $insertRestriccion = $this->con->prepare(
+                'INSERT INTO Restriccion_Docente
+                    (ID_D, Dia, HoraEntrada, HoraSalida, ID_Hc)
+                 VALUES (?, ?, ?, ?, ?)'
+            );
+            if (!$insert || !$insertRestriccion) {
+                throw new RuntimeException('No se pudieron preparar las consultas para guardar el horario.');
+            }
             $fecha = $anio . '-01-01';
 
-            foreach ($asignaciones as $asignacion) {
-                $faltan = (int) $asignacion['CargaHoraria'];
-                $usadosPorDia = [];
+            $gruposPorDia = [];
+            foreach ($grupos as $grupo) {
+                $asignacion = $grupo['asignacion'];
+                $cantidad = (int) $grupo['cantidad'];
+                $candidatos = $this->buscarGruposDisponibles(
+                    $bloques,
+                    $cantidad,
+                    $asignacion,
+                    $ocupadosCurso,
+                    $ocupadosDocente,
+                    $restriccionesDocente
+                );
 
-                while ($faltan > 0) {
-                    $elegido = null;
-                    $mejorPuntaje = PHP_INT_MAX;
+                if (!$candidatos) {
+                    $pendientes[] = $asignacion['Materia'] . ': grupo de ' . $cantidad . ' bloque(s)';
+                    continue;
+                }
 
-                    foreach ($bloques as $bloque) {
-                        $clave = $bloque['Dia'] . '|' . $bloque['HoraEntrada'] . '|' . $bloque['HoraSalida'];
-                        $docente = (int) $asignacion['ID_D'];
-                        if (isset($ocupadosCurso[$clave]) ||
-                            $this->intervaloOcupado($ocupadosDocente[$docente][$bloque['Dia']] ?? [], $bloque) ||
-                            $this->intervaloOcupado($restriccionesDocente[$docente][$bloque['Dia']] ?? [], $bloque)) {
-                            continue;
-                        }
+                usort($candidatos, function ($a, $b) use ($gruposPorDia, $asignacion) {
+                    $id = (int) $asignacion['ID_Am'];
+                    $puntajeA = ($gruposPorDia[$id][$a[0]['Dia']] ?? 0) * 100 + (int) $a[0]['Dia'];
+                    $puntajeB = ($gruposPorDia[$id][$b[0]['Dia']] ?? 0) * 100 + (int) $b[0]['Dia'];
+                    return $puntajeA <=> $puntajeB;
+                });
 
-                        $puntaje = ($usadosPorDia[$bloque['Dia']] ?? 0) * 100 + (int) $bloque['Dia'];
-                        if ($puntaje < $mejorPuntaje) {
-                            $mejorPuntaje = $puntaje;
-                            $elegido = $bloque;
-                        }
-                    }
+                $elegidos = $candidatos[0];
+                $idAsignacion = (int) $asignacion['ID_Am'];
+                $docente = (int) $asignacion['ID_D'];
+                $diaGrupo = (int) $elegidos[0]['Dia'];
 
-                    if ($elegido === null) {
-                        $pendientes[] = $asignacion['Materia'] . ': ' . $faltan . ' bloque(s)';
-                        break;
-                    }
-
-                    $idAsignacion = (int) $asignacion['ID_Am'];
+                foreach ($elegidos as $elegido) {
                     $dia = (int) $elegido['Dia'];
                     $entrada = $elegido['HoraEntrada'];
                     $salida = $elegido['HoraSalida'];
@@ -168,15 +194,23 @@ class Horario_FinalBD extends Conexion
                         throw new RuntimeException('No se pudo guardar un bloque: ' . $insert->error);
                     }
 
-                    $clave = $dia . '|' . $entrada . '|' . $salida;
-                    $ocupadosCurso[$clave] = true;
-                    $ocupadosDocente[(int) $asignacion['ID_D']][$dia][] = ['HoraEntrada' => $entrada, 'HoraSalida' => $salida];
-                    $usadosPorDia[$dia] = ($usadosPorDia[$dia] ?? 0) + 1;
-                    $faltan--;
+                    $idHorario = (int) $this->con->insert_id;
+                    $insertRestriccion->bind_param('iissi', $docente, $dia, $entrada, $salida, $idHorario);
+                    if (!$insertRestriccion->execute()) {
+                        throw new RuntimeException(
+                            'No se pudo guardar la ocupación del docente: ' . $insertRestriccion->error
+                        );
+                    }
+
+                    $clave = $this->claveBloque($elegido);
+                    $ocupadosCurso[$clave] = $idAsignacion;
+                    $ocupadosDocente[$docente][$dia][] = ['HoraEntrada' => $entrada, 'HoraSalida' => $salida];
                 }
+                $gruposPorDia[$idAsignacion][$diaGrupo] = ($gruposPorDia[$idAsignacion][$diaGrupo] ?? 0) + 1;
             }
 
             $insert->close();
+            $insertRestriccion->close();
             $this->con->commit();
             $this->Desconectar();
             return $pendientes;
@@ -190,7 +224,7 @@ class Horario_FinalBD extends Conexion
     private function obtenerAsignaciones($idCurso)
     {
         $stmt = $this->con->prepare(
-            'SELECT am.ID_Am, am.ID_D, m.Nombre AS Materia, m.CargaHoraria
+            'SELECT am.ID_Am, am.ID_D, m.Nombre AS Materia, m.CargaHoraria, m.HorasSe
              FROM Asignacion_Materia am
              INNER JOIN Materia m ON m.ID_M = am.ID_M
              WHERE am.ID_C = ? AND m.Activo = 1'
@@ -237,7 +271,11 @@ class Horario_FinalBD extends Conexion
 
     private function obtenerRestriccionesDocente()
     {
-        $resultado = $this->con->query('SELECT ID_D, Dia, HoraEntrada, HoraSalida FROM Restriccion_Docente');
+        $resultado = $this->con->query(
+            'SELECT ID_D, Dia, HoraEntrada, HoraSalida
+             FROM Restriccion_Docente
+             WHERE ID_Hc IS NULL'
+        );
         $mapa = [];
         while ($fila = $resultado->fetch_assoc()) {
             $mapa[(int) $fila['ID_D']][(int) $fila['Dia']][] = $fila;
@@ -255,5 +293,99 @@ class Horario_FinalBD extends Conexion
             }
         }
         return false;
+    }
+
+    private function buscarGruposDisponibles(
+        $bloques,
+        $cantidad,
+        $asignacion,
+        $ocupadosCurso,
+        $ocupadosDocente,
+        $restriccionesDocente
+    ) {
+        $porDia = [];
+        foreach ($bloques as $bloque) {
+            $porDia[(int) $bloque['Dia']][] = $bloque;
+        }
+
+        $candidatos = [];
+        $idAsignacion = (int) $asignacion['ID_Am'];
+        $docente = (int) $asignacion['ID_D'];
+
+        foreach ($porDia as $dia => $bloquesDia) {
+            $limite = count($bloquesDia) - $cantidad;
+            for ($inicio = 0; $inicio <= $limite; $inicio++) {
+                $grupo = array_slice($bloquesDia, $inicio, $cantidad);
+                $disponible = true;
+
+                foreach ($grupo as $indice => $bloque) {
+                    if ($indice > 0) {
+                        $finAnterior = strtotime($grupo[$indice - 1]['HoraSalida']);
+                        $inicioActual = strtotime($bloque['HoraEntrada']);
+                        $pausa = $inicioActual - $finAnterior;
+                        if ($pausa < 0 || $pausa > 600) {
+                            $disponible = false;
+                            break;
+                        }
+                    }
+                    $clave = $this->claveBloque($bloque);
+                    if (isset($ocupadosCurso[$clave]) ||
+                        $this->intervaloOcupado($ocupadosDocente[$docente][$dia] ?? [], $bloque) ||
+                        $this->intervaloOcupado($restriccionesDocente[$docente][$dia] ?? [], $bloque)) {
+                        $disponible = false;
+                        break;
+                    }
+                }
+
+                if (!$disponible) {
+                    continue;
+                }
+
+                // Impide unir dos grupos de la misma materia y superar HorasSe.
+                $anterior = $inicio > 0 ? $bloquesDia[$inicio - 1] : null;
+                $siguiente = ($inicio + $cantidad) < count($bloquesDia)
+                    ? $bloquesDia[$inicio + $cantidad]
+                    : null;
+                if (($anterior && ($ocupadosCurso[$this->claveBloque($anterior)] ?? null) === $idAsignacion) ||
+                    ($siguiente && ($ocupadosCurso[$this->claveBloque($siguiente)] ?? null) === $idAsignacion)) {
+                    continue;
+                }
+
+                $candidatos[] = $grupo;
+            }
+        }
+
+        return $candidatos;
+    }
+
+    private function claveBloque($bloque)
+    {
+        return $bloque['Dia'] . '|' . $bloque['HoraEntrada'] . '|' . $bloque['HoraSalida'];
+    }
+
+    private function asegurarRelacionRestriccionHorario()
+    {
+        $resultado = $this->con->query("SHOW COLUMNS FROM Restriccion_Docente LIKE 'ID_Hc'");
+        if (!$resultado) {
+            throw new RuntimeException('No se pudo comprobar la estructura de Restriccion_Docente.');
+        }
+        $existe = $resultado->num_rows > 0;
+        $resultado->close();
+
+        if ($existe) {
+            return;
+        }
+
+        $sql = 'ALTER TABLE Restriccion_Docente
+                ADD COLUMN ID_Hc INT NULL AFTER ID_D,
+                ADD UNIQUE KEY UQ_Restriccion_Docente_Horario (ID_Hc),
+                ADD CONSTRAINT FK_Restriccion_Docente_Horario
+                    FOREIGN KEY (ID_Hc) REFERENCES HorarioFinal (ID_Hc)
+                    ON DELETE CASCADE ON UPDATE CASCADE';
+        if (!$this->con->query($sql)) {
+            throw new RuntimeException(
+                'No se pudo actualizar Restriccion_Docente para vincular el horario: ' . $this->con->error
+            );
+        }
     }
 }

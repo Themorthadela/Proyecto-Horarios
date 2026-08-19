@@ -33,6 +33,7 @@ class Materia {
   ID_M : int
   Nombre : string
   CargaHoraria : int
+  HorasSe : int
   TipoSalon : enum 
   Activo : bool
   

@@ -2,6 +2,7 @@
 class Materia {
     private $nombre;
     private $cargaHoraria;
+    private $horasSeguidas;
     private $tipoSalon;
     private $activo;
     private $area;
@@ -20,6 +21,14 @@ class Materia {
 
     public function SetCargaHoraria($cargaHoraria) {
         $this->cargaHoraria = $cargaHoraria;
+    }
+
+    public function GetHorasSeguidas() {
+        return $this->horasSeguidas;
+    }
+
+    public function SetHorasSeguidas($horasSeguidas) {
+        $this->horasSeguidas = $horasSeguidas;
     }
 
     public function GetTipoSalon() {
@@ -51,6 +60,7 @@ class Materia {
         $MateriaBD-> Agregar(  
             $this->nombre,
             $this->cargaHoraria,
+            $this->horasSeguidas,
             $this->tipoSalon,
             $this->activo,
             $this->area

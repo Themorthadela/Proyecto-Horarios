@@ -13,7 +13,7 @@ $curso = new Curso();
 $cursos = $curso->ListarCursos();
 $horarioBD = new Horario_FinalBD();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'generar') {
     try {
         $pendientes = $horarioBD->GenerarPorCurso($idCurso, $anio);
         $mensaje = $pendientes
@@ -22,6 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (Throwable $e) {
         $error = $e->getMessage();
     }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'mostrar' && $idCurso <= 0) {
+    $error = 'Seleccione un curso para mostrar su horario.';
 }
 
 if ($idCurso > 0) {
@@ -54,6 +58,7 @@ asort($franjas);
         label { display: grid; gap: .35rem; font-weight: bold; }
         select, input, button { padding: .55rem; font: inherit; }
         button { cursor: pointer; background: #1769aa; color: white; border: 0; border-radius: 4px; }
+        button.secundario { background: #555; }
         .mensaje { padding: .8rem; margin: 1rem 0; border-radius: 4px; background: #e8f5e9; }
         .error { background: #ffebee; color: #a40000; }
         .advertencia { background: #fff8e1; }
@@ -86,7 +91,8 @@ asort($franjas);
             Año lectivo
             <input type="number" name="anio" min="2000" max="2100" value="<?= $anio ?>" required>
         </label>
-        <button type="submit">Generar / regenerar</button>
+        <button type="submit" name="accion" value="generar">Generar / regenerar</button>
+        <button type="submit" name="accion" value="mostrar" class="secundario">Mostrar horarios</button>
     </form>
 
     <p>Al regenerar se reemplaza solamente el horario del curso y año elegidos.</p>

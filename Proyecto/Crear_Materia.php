@@ -13,6 +13,9 @@
         <label for="CargaHoraria">Carga Horaria:</label>
         <input type="number" id="CargaHoraria" name="CargaHoraria" required><br><br>
 
+        <label for="HorasSeguidas">Cantidad de Horas Seguidas:</label>
+        <input type="number" id="HorasSeguidas" name="HorasSeguidas" required><br><br>
+
         <label for="TipoSalon">Tipo de Salon:</label>
             <select name="TipoSalon" id="TipoSalon">
                 <option value="">Seleccione un tipo de salon</option>
@@ -83,6 +86,7 @@
             $materia = new Materia();
             $materia->SetNombre($_POST['nombre']);
             $materia->SetCargaHoraria($_POST['CargaHoraria']);
+            $materia->SetHorasSeguidas($_POST['HorasSeguidas']);
             $materia->SetTipoSalon($_POST['TipoSalon']);
             $materia->SetActivo(true);
             $materia->SetArea($_POST['area']);
