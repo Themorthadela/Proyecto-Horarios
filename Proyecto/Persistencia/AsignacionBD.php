@@ -16,9 +16,17 @@
             $resultado = $stmt->execute();
 
             if (!$resultado) {
-                throw new Exception('Error al ejecutar la consulta: ' . $stmt->error);
+                $codigo = $stmt->errno;
+                $stmt->close();
+                $this->Desconectar();
+                if ($codigo === 1062) {
+                    throw new DomainException('Esa materia ya está asignada al docente en el curso seleccionado.');
+                }
+                throw new RuntimeException('No se pudo guardar la asignación.');
             }
 
+            $stmt->close();
+            $this->Desconectar();
             return $resultado;
         }
 

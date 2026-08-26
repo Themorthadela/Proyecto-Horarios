@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/Requerir_Sesion.php';
 include_once __DIR__ . '/Logica/Curso.php';
 include_once __DIR__ . '/Persistencia/Horario_FinalBD.php';
 
@@ -56,7 +57,7 @@ asort($franjas);
     <title>Generar horarios</title>
 </head>
 <body>
-    <nav><a href="index.php">Volver al inicio</a></nav>
+    <nav><a href="Panel_Admin.php">Volver al inicio</a></nav>
     <h1>Generar horario</h1>
 
     <form method="post">

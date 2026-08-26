@@ -18,7 +18,7 @@
         }
 
         public function AgregarDocenteArea() {
-            include_once 'Persistencia/Union/Docente_AreaBD.php';
+            include_once '../Persistencia/Union/Docente_AreaBD.php';
             $docente_areaBD = new Docente_AreaBD();
             return $docente_areaBD->Agregar(
                 $this->id_d,
@@ -27,7 +27,7 @@
         }
 
         public function ListarDocentesAreas() {
-            include_once 'Persistencia/Union/Docente_AreaBD.php';
+            include_once '../Persistencia/Union/Docente_AreaBD.php';
             $docente_areaBD = new Docente_AreaBD();
             return $docente_areaBD->Listar();
         }

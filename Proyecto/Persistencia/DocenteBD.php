@@ -73,7 +73,7 @@ class DocenteBD extends Conexion{
     }
 
     public function IdDocente($id) {
-        require_once "./Persistencia/Conexion.php";
+        require_once __DIR__ . "/../Persistencia/Conexion.php";
 
         $con = new Conexion();
         $conn = $con->conectar();

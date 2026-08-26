@@ -1,14 +1,15 @@
+<?php require_once __DIR__ . '/../Requerir_Sesion.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="Estilo/General.css">
-    <link rel="stylesheet" href="Estilo/Formularios.css">
+    <link rel="stylesheet" href="../Estilo/General.css">
+    <link rel="stylesheet" href="../Estilo/Formularios.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Docente</title>
 </head>
 <body>
-    <nav><a href="index.php">Volver al panel</a></nav>
+    <nav><a href="../Panel_Admin.php">Volver al panel</a></nav>
     <h1>Crear docente</h1>
     <form action="" method="post">
         <label for="nombre">Nombre:</label>
@@ -28,7 +29,7 @@
 
         <label>Área:</label>
         <?php
-            include_once "Logica/Area.php";
+            include_once __DIR__ . "/../Logica/Area.php";
                 $area = new Area();
                 $areas = $area->ListarAreas();
         ?>
@@ -48,12 +49,12 @@
     </form>
 
 <?php
-include_once "Logica/Docente.php";
+include_once __DIR__ . "/../Logica/Docente.php";
 
 if (isset($_POST['enviar'])) {
 
-    include_once "Logica/Usuario.php";
-    include_once "Logica/Union/Docente_Area.php";
+    include_once __DIR__ . "/../Logica/Usuario.php";
+    include_once __DIR__ . "/../Logica/Union/Docente_Area.php";
 
     $usuario = new Usuario();
     $usuario->SetNombre($_POST['nombre']);

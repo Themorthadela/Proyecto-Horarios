@@ -42,7 +42,7 @@ class Curso {
     }
 
     public function AgregarCurso() {
-        include_once 'Persistencia/CursoBD.php';
+        include_once __DIR__ . "/../Persistencia/CursoBD.php";
         $cursoBD = new CursoBD();
         $cursoBD->Agregar(
             $this->nombre,
@@ -54,13 +54,13 @@ class Curso {
     }
 
     public function ListarCursos() {
-        include_once 'Persistencia/CursoBD.php';
+        include_once __DIR__ . "/../Persistencia/CursoBD.php";
         $cursoBD = new CursoBD();
         return $cursoBD->Listar();
     }
 
     public function ObtenerCursoPorId($id) {
-        include_once 'Persistencia/CursoBD.php';
+        include_once __DIR__ . "/../Persistencia/CursoBD.php";
         $cursoBD = new CursoBD();
         return $cursoBD->IdCurso($id);
     }

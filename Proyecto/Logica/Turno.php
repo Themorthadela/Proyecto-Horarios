@@ -34,7 +34,7 @@
         }
 
         public function AgregarTurno() {
-            include_once 'Persistencia/TurnoBD.php';
+            include_once __DIR__ . "/../Persistencia/TurnoBD.php";
             $TurnoBD= new TurnoBD();
             $TurnoBD-> Agregar(  
                 $this->id_c,
@@ -45,13 +45,13 @@
         }
 
         public function ListarTurnos(){
-            include_once 'Persistencia/TurnoBD.php';
+            include_once __DIR__ . "/../Persistencia/TurnoBD.php";
             $TurnoBD= new TurnoBD();
             return $TurnoBD->Listar();
         }
 
         public function ObtenerTurnoCurso($idCurso) {
-            include_once 'Persistencia/TurnoBD.php';
+            include_once __DIR__ . "/../Persistencia/TurnoBD.php";
             $turnoBD = new TurnoBD();
             return $turnoBD->ObtenerTurnoCurso($idCurso);
         }

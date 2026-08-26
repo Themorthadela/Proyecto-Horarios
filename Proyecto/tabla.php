@@ -14,7 +14,8 @@
     <form method="post">
 
         <label>Docente:</label>
-        <?php
+<?php
+require_once __DIR__ . '/Requerir_Sesion.php';
         include_once "Logica/Docente.php";
         $docente = new Docente();
         $docentes = $docente->GradoDocente();

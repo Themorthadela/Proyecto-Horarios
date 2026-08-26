@@ -1,7 +1,7 @@
 <?php
-include_once __DIR__ . "/Logica/Curso.php";
-include_once __DIR__ . "/Logica/Turno.php";
-include_once __DIR__ . "/Logica/Restricciones/Restriccion_Curso.php";
+include_once __DIR__ . "/../Logica/Curso.php";
+include_once __DIR__ . "/../Logica/Turno.php";
+include_once __DIR__ . "/../Logica/Restricciones/Restriccion_Curso.php";
 
 $curso = new Curso();
 $cursos = $curso->ListarCursos();
@@ -103,11 +103,12 @@ if ($cursoSeleccionado > 0) {
     }
 }
 ?>
+<?php require_once __DIR__ . '/../Requerir_Sesion.php'; ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="stylesheet" href="Estilo/General.css">
-    <link rel="stylesheet" href="Estilo/Formularios.css">
+    <link rel="stylesheet" href="../Estilo/General.css">
+    <link rel="stylesheet" href="../Estilo/Formularios.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restricciones de curso</title>
@@ -174,7 +175,7 @@ if ($cursoSeleccionado > 0) {
     </style>
 </head>
 <body>
-    <nav><a href="index.php">Volver al panel</a></nav>
+    <nav><a href="../Panel_Admin.php">Volver al panel</a></nav>
     <h1>Restricciones de curso</h1>
     <form method="post">
         <label for="curso"><strong>Curso:</strong></label>
@@ -342,7 +343,7 @@ if ($cursoSeleccionado > 0) {
                     formData.append("datos", JSON.stringify(datos));
                     formData.append("curso", idCurso);
 
-                    fetch("guardar_restricciones_curso.php", {
+                    fetch("../guardar_restricciones_curso.php", {
                         method: "POST",
                         body: formData
                     })

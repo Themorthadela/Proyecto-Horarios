@@ -1,14 +1,15 @@
+<?php require_once __DIR__ . '/../Requerir_Sesion.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="Estilo/General.css">
-    <link rel="stylesheet" href="Estilo/Formularios.css">
+    <link rel="stylesheet" href="../Estilo/General.css">
+    <link rel="stylesheet" href="../Estilo/Formularios.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Materia</title>
 </head>
 <body>
-    <nav><a href="index.php">Volver al panel</a></nav>
+    <nav><a href="../Panel_Admin.php">Volver al panel</a></nav>
     <h1>Crear materia</h1>
     <form action="" method="post">
         <label for="nombre">Nombre de la materia:</label>
@@ -30,7 +31,7 @@
 
         <label for="area">Tipo de Area:</label>
         <?php
-            include_once "Logica/Area.php";
+            include_once __DIR__ . "/../Logica/Area.php";
                 $area = new Area();
                 $areas = $area->ListarAreas();
         ?>
@@ -53,7 +54,7 @@
 
             <label for="materia">Materia:</label>
                 <?php
-                    include_once "Logica/Materia.php";
+                    include_once __DIR__ . "/../Logica/Materia.php";
                     $materia = new Materia();
                     $materias = $materia->ListarMaterias();
                 ?>
@@ -68,7 +69,7 @@
 
             <label for="docente">Docente:</label>
                 <?php
-                    include_once "Logica/Docente.php";
+                    include_once __DIR__ . "/../Logica/Docente.php";
                     $docente = new Docente();
                     $docentes = $docente->ListarDocentes();
                 ?>
@@ -85,7 +86,7 @@
         </form>
 
     <?php
-        include_once "Logica/Materia.php";
+        include_once __DIR__ . "/../Logica/Materia.php";
         if (isset($_POST['enviar'])) {
             $materia = new Materia();
             $materia->SetNombre($_POST['nombre']);
@@ -97,7 +98,7 @@
             $materia->AgregarMateria();
         }
 
-        include_once "Logica/Union/Docente_Materia.php";
+        include_once __DIR__ . "/../Logica/Union/Docente_Materia.php";
         if (isset($_POST['asignar'])) {
             $docente_materia = new Docente_Materia();
             $docente_materia->SetIdDocente($_POST['docente']);

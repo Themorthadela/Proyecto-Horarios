@@ -1,14 +1,15 @@
+<?php require_once __DIR__ . '/../Requerir_Sesion.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="Estilo/General.css">
-    <link rel="stylesheet" href="Estilo/Formularios.css">
+    <link rel="stylesheet" href="../Estilo/General.css">
+    <link rel="stylesheet" href="../Estilo/Formularios.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
 <body>
-    <nav><a href="index.php">Volver al panel</a></nav>
+    <nav><a href="../Panel_Admin.php">Volver al panel</a></nav>
     <h1>Crear Área</h1>
 
     <form method="post">
@@ -20,7 +21,7 @@
     </form>
 
     <?php
-        include_once "Logica/Area.php";
+        include_once __DIR__ . "/../Logica/Area.php";
             $area = new Area();
 
         if (isset($_POST['enviar'])) {

@@ -1,14 +1,15 @@
+<?php require_once __DIR__ . '/../Requerir_Sesion.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="Estilo/General.css">
-    <link rel="stylesheet" href="Estilo/Formularios.css">
+    <link rel="stylesheet" href="../Estilo/General.css">
+    <link rel="stylesheet" href="../Estilo/Formularios.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Curso</title>
 </head>
 <body>
-    <nav><a href="index.php">Volver al panel</a></nav>
+    <nav><a href="../Panel_Admin.php">Volver al panel</a></nav>
     <h1>Crear curso</h1>
     <form action="" method="post">
         <label for="nombre">Nombre:</label>
@@ -42,7 +43,7 @@
 <label>Área:</label>
 
 <?php
-include_once "Logica/Area.php";
+include_once __DIR__ . "/../Logica/Area.php";
 $area = new Area();
 $areas = $area->ListarAreas();
 ?>
@@ -90,9 +91,9 @@ function agregarArea() {
     </form>
 
     <?php
-        include_once "Logica/Curso.php";
-        include_once "Logica/Union/Curso_Area.php";
-        include_once "Logica/Turno.php";
+        include_once __DIR__ . "/../Logica/Curso.php";
+        include_once __DIR__ . "/../Logica/Union/Curso_Area.php";
+        include_once __DIR__ . "/../Logica/Turno.php";
 
         if (isset($_POST['enviar'])) {
             $curso = new Curso();

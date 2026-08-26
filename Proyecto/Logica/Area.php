@@ -11,13 +11,13 @@ class Area {
     }
 
      public function AgregarArea() {
-        include_once 'Persistencia/AreaBD.php';
+        include_once __DIR__ . "/../Persistencia/AreaBD.php";
         $areaBD = new AreaBD();
         $areaBD->Agregar($this->nombre);
      }
 
     public function ListarAreas() {
-        include_once 'Persistencia/AreaBD.php';
+        include_once __DIR__ . "/../Persistencia/AreaBD.php";
         $areaBD = new AreaBD();
         return $areaBD->Listar();
      }     

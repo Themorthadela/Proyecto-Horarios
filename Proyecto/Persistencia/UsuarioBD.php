@@ -10,12 +10,51 @@ class UsuarioBD extends Conexion {
         $sql = "INSERT INTO Usuario (Nombre, Apellido, Email, Contraseña, Activo, Rol) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
-            die("Error en la preparación de la consulta: " . $this->con->error);
+            throw new RuntimeException("No se pudo preparar el alta de usuario.");
         }
-        $stmt->bind_param("ssssss", $nombre, $apellido, $correo, $contrasena, $activo, $rol);
+        $activo = $activo ? 1 : 0;
+        $stmt->bind_param("ssssis", $nombre, $apellido, $correo, $contrasena, $activo, $rol);
         if (!$stmt->execute()) {
-            die("Error al ejecutar la consulta: " . $stmt->error);
+            $codigo = $stmt->errno;
+            $stmt->close();
+            $this->Desconectar();
+            if ($codigo === 1062) {
+                throw new DomainException("Ya existe un usuario con ese correo electrónico.");
+            }
+            throw new RuntimeException("No se pudo crear el usuario.");
         }
+        $stmt->close();
+        $this->Desconectar();
+    }
+
+    public function BuscarPorCorreo($correo) {
+        $this->Conectar();
+        $sql = 'SELECT ID_U, Nombre, Apellido, Email, Contraseña, Activo, Rol FROM Usuario WHERE Email = ? LIMIT 1';
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            $this->Desconectar();
+            throw new RuntimeException("No se pudo consultar el usuario.");
+        }
+
+        $stmt->bind_param("s", $correo);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        $usuario = $resultado->fetch_assoc() ?: null;
+        $stmt->close();
+        $this->Desconectar();
+        return $usuario;
+    }
+
+    public function ActualizarContrasena($id, $hash) {
+        $this->Conectar();
+        $sql = 'UPDATE Usuario SET Contraseña = ? WHERE ID_U = ?';
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            $this->Desconectar();
+            throw new RuntimeException("No se pudo actualizar la contraseña.");
+        }
+        $stmt->bind_param("si", $hash, $id);
+        $stmt->execute();
         $stmt->close();
         $this->Desconectar();
     }

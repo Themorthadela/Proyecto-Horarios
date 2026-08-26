@@ -18,7 +18,7 @@ class Docente{
     }
 
     public function AgregarDocente(){
-        include_once 'Persistencia/DocenteBD.php';
+        include_once __DIR__ . "/../Persistencia/DocenteBD.php";
         $DocenteBD= new DocenteBD();
         $DocenteBD-> Agregar(  
             $this->id_u,
@@ -27,19 +27,19 @@ class Docente{
     }
 
     public function ListarDocentes(){
-        include_once 'Persistencia/DocenteBD.php';
+        include_once __DIR__ . "/../Persistencia/DocenteBD.php";
         $DocenteBD= new DocenteBD();
         return $DocenteBD->Listar();
     }
 
     public  function GradoDocente() {
-        include_once 'Persistencia/DocenteBD.php';
+        include_once __DIR__ . "/../Persistencia/DocenteBD.php";
         $DocenteBD = new DocenteBD();
         return $DocenteBD->Grado();
     }
 
     public function ObtenerDocentePorId($id) {
-        include_once 'Persistencia/DocenteBD.php';
+        include_once __DIR__ . "/../Persistencia/DocenteBD.php";
         $docenteBD = new DocenteBD();
         return $docenteBD->IdDocente($id);
     }

@@ -1,21 +1,22 @@
+<?php require_once __DIR__ . '/../Requerir_Sesion.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="Estilo/General.css">
-    <link rel="stylesheet" href="Estilo/Formularios.css">
+    <link rel="stylesheet" href="../Estilo/General.css">
+    <link rel="stylesheet" href="../Estilo/Formularios.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
 <body>
-    <nav><a href="index.php">Volver al panel</a></nav>
-    <h1 style="color: red;">Restricciones de Externas del docente</h1>
+    <nav><a href="../Panel_Admin.php">Volver al panel</a></nav>
+    <h1>Restricciones de Externas del docente</h1>
 
     <form method="post">
 
         <label>Docente:</label>
         <?php
-        include_once "Logica/Docente.php";
+        include_once __DIR__ . "/../Logica/Docente.php";
         $docente = new Docente();
         $docentes = $docente->GradoDocente();
         ?>
@@ -48,11 +49,10 @@
         <input type="submit" name="enviar" value="Enviar Restricciones">        
     </form>
 
-    <a href="index.php">Volver</a>
 
     <?php
 
-        include_once "Logica/Restricciones/Restriccion_Docente.php";
+        include_once __DIR__ . "/../Logica/Restricciones/Restriccion_Docente.php";
 
         if (isset($_POST['enviar'])) {
 

@@ -55,7 +55,7 @@ class Materia {
     }
 
     public function AgregarMateria() {
-        include_once 'Persistencia/MateriaBD.php';
+        include_once __DIR__ . "/../Persistencia/MateriaBD.php";
         $MateriaBD= new MateriaBD();
         $MateriaBD-> Agregar(  
             $this->nombre,
@@ -68,7 +68,7 @@ class Materia {
     }
 
     public function ListarMaterias(){
-        include_once 'Persistencia/MateriaBD.php';
+        include_once __DIR__ . "/../Persistencia/MateriaBD.php";
         $MateriaBD= new MateriaBD();
         return $MateriaBD->Listar();
   }
