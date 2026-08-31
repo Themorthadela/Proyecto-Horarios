@@ -1,12 +1,14 @@
 <?php
 session_start();
-if (isset($_SESSION['admin']) && $_SESSION['admin'] === true) {
-    header('Location: Panel_Admin.php');
-    exit;
-}
-if (isset($_SESSION['secretaria']) && $_SESSION['secretaria'] === true) {
-    header('Location: Panel_Secretaria.php');
-    exit;
+if (isset($_SESSION['usuario']['rol'])) {
+    if (in_array($_SESSION['usuario']['rol'], ['Admin', 'Secretaria'], true)) {
+        header('Location: Panel_Admin.php');
+        exit;
+    }
+    if ($_SESSION['usuario']['rol'] === 'Director') {
+        header('Location: MostrarHorario.php');
+        exit;
+    }
 }
 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 $mensajes = [

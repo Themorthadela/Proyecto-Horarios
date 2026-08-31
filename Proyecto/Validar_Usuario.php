@@ -51,12 +51,19 @@ $_SESSION['usuario'] = [
 $_SESSION['ultimo_acceso'] = $ahora;
 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
-if (!in_array($usuario['Rol'], ['Admin', 'Secretaria', 'Director'], true)) {
-    $_SESSION = [];
-    session_destroy();
-    header('Location: index.php?error=rol');
-    exit;
-}
+switch ($usuario['Rol']) {
+    case 'Admin':
+    case 'Secretaria':
+        header('Location: Panel_Admin.php');
+        exit;
 
-header('Location: Panel_Admin.php');
-exit;
+    case 'Director':
+        header('Location: MostrarHorarios.php');
+        exit;
+
+    default:
+        $_SESSION = [];
+        session_destroy();
+        header('Location: index.php?error=rol');
+        exit;
+}
