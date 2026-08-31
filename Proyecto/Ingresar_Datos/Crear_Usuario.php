@@ -3,11 +3,37 @@ require_once __DIR__ . '/../Requerir_Sesion.php';
 require_once __DIR__ . '/../Logica/Usuario.php';
 $mensaje = null;
 $tipoMensaje = 'error';
+$rolSesion = $_SESSION['usuario']['rol'] ?? '';
+
+if (!in_array($rolSesion, ['Admin', 'Secretaria'], true)) {
+    header('Location: ../index.php?error=rol');
+    exit;
+}
+
+$rolesPermitidos = $rolSesion === 'Secretaria'
+    ? ['Docente', 'Usuario']
+    : ['Admin', 'Director', 'Secretaria', 'Docente', 'Usuario'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = $_POST['csrf_token'] ?? '';
     if (!is_string($token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
         $mensaje = 'La solicitud venció. Volvé a intentarlo.';
+    } elseif (($_POST['accion'] ?? 'crear') === 'cambiar_rol') {
+        $nuevoRol = $_POST['rol'] ?? '';
+        if (!in_array($nuevoRol, $rolesPermitidos, true)) {
+            $mensaje = 'No tenés permiso para asignar ese rol.';
+        } else {
+            try {
+                Usuario::CambiarRol($_POST['usuario_id'] ?? null, $nuevoRol);
+                $mensaje = 'Rol actualizado correctamente.';
+                $tipoMensaje = '';
+            } catch (InvalidArgumentException $e) {
+                $mensaje = $e->getMessage();
+            } catch (Throwable $e) {
+                error_log($e->getMessage());
+                $mensaje = 'No se pudo actualizar el rol.';
+            }
+        }
     } elseif (($_POST['password'] ?? '') !== ($_POST['confirmar_password'] ?? '')) {
         $mensaje = 'Las contraseñas no coinciden.';
     } else {
@@ -31,6 +57,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$mostrarUsuarios = isset($_GET['mostrar']) || (($_POST['accion'] ?? '') === 'cambiar_rol');
+$usuarios = [];
+if ($mostrarUsuarios) {
+    try {
+        $usuarios = (new Usuario())->ListarUsuarios();
+    } catch (Throwable $e) {
+        error_log($e->getMessage());
+        $mensaje = $mensaje ?: 'No se pudo cargar la lista de usuarios.';
+        $tipoMensaje = 'error';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../Estilo/Formularios.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Crear y gestionar usuarios</title>
 </head>
 <body>
     <nav><a href="../Panel_Admin.php">Volver al panel</a></nav>
@@ -63,7 +101,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="password" id="confirmar_password" name="confirmar_password" minlength="8" maxlength="72" autocomplete="new-password" required><br><br>
 
         <input type="submit" name="enviar" value="Crear Usuario">
+        <input type="hidden" name="mostrar" value="1">
+        <p><a class="boton-enlace" href="?mostrar=1">Mostrar usuarios</a></p>
+            
     </form>
+
+
+    <?php if ($mostrarUsuarios): ?>
+        <h2>Usuarios</h2>
+        <div class="tabla">
+            <table>
+                <thead><tr><th>Nombre</th><th>Email</th><th>Estado</th><th>Rol</th><th>Acción</th></tr></thead>
+                <tbody>
+                <?php if (!$usuarios): ?>
+                    <tr><td colspan="5">No hay usuarios registrados.</td></tr>
+                <?php else: ?>
+                    <?php foreach ($usuarios as $fila): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($fila['Nombre'] . ' ' . $fila['Apellido'], ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($fila['Email'], ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td><?php echo (bool) $fila['Activo'] ? 'Activo' : 'Inactivo'; ?></td>
+                            <td><?php echo htmlspecialchars($fila['Rol'], ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td>
+                                <form method="post" class="form-rol">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    <input type="hidden" name="accion" value="cambiar_rol">
+                                    <input type="hidden" name="usuario_id" value="<?php echo (int) $fila['ID_U']; ?>">
+                                    <label>
+                                        <span class="sr-only">Nuevo rol para <?php echo htmlspecialchars($fila['Nombre'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                        <select name="rol" required>
+                                            <?php foreach ($rolesPermitidos as $rol): ?>
+                                                <option value="<?php echo $rol; ?>" <?php echo $fila['Rol'] === $rol ? 'selected' : ''; ?>><?php echo $rol; ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </label>
+                                    <button type="submit">Cambiar rol</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
 
 </body>
 </html>

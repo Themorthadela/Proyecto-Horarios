@@ -22,7 +22,7 @@
         <input type="email" id="email" name="email" required><br><br>
 
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required><br><br>
+        <input type="password" id="password" name="password" placeholder="Ingrese la cedula del docente" required><br><br>
 
         <label for="grado">Grado:</label>
         <input type="number" id="grado" name="grado" required><br><br>

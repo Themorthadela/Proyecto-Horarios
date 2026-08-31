@@ -59,9 +59,28 @@ class UsuarioBD extends Conexion {
         $this->Desconectar();
     }
 
+    public function ActualizarRol($id, $rol) {
+        $this->Conectar();
+        $sql = 'UPDATE Usuario SET Rol = ? WHERE ID_U = ?';
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            $this->Desconectar();
+            throw new RuntimeException("No se pudo preparar el cambio de rol.");
+        }
+
+        $stmt->bind_param("si", $rol, $id);
+        if (!$stmt->execute()) {
+            $stmt->close();
+            $this->Desconectar();
+            throw new RuntimeException("No se pudo cambiar el rol del usuario.");
+        }
+        $stmt->close();
+        $this->Desconectar();
+    }
+
     public function Listar() {
         $this->Conectar();
-        $sql = 'SELECT * FROM Usuario';
+        $sql = 'SELECT ID_U, Nombre, Apellido, Email, Activo, Rol FROM Usuario ORDER BY Apellido, Nombre';
         $result= $this->con->query($sql);
 
         $usuarios = [];

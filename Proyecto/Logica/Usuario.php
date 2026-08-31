@@ -133,4 +133,18 @@
             return $usuarioBD->Listar();
         }
 
+        public static function CambiarRol($id, $rol) {
+            include_once __DIR__ . "/../Persistencia/UsuarioBD.php";
+            $id = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($id === false) {
+                throw new InvalidArgumentException('El usuario seleccionado no es válido.');
+            }
+            if (!in_array($rol, ['Admin', 'Director', 'Secretaria', 'Docente', 'Usuario'], true)) {
+                throw new InvalidArgumentException('El rol seleccionado no es válido.');
+            }
+
+            $usuarioBD = new UsuarioBD();
+            $usuarioBD->ActualizarRol($id, $rol);
+        }
+
     }

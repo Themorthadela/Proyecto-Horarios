@@ -1,4 +1,12 @@
-<?php require_once __DIR__ . '/Requerir_Sesion.php'; ?>
+<?php
+require_once __DIR__ . '/Requerir_Sesion.php';
+if (!in_array($_SESSION['usuario']['rol'] ?? '', ['Admin', 'Secretaria'], true)) {
+    $_SESSION = [];
+    session_destroy();
+    header('Location: index.php?error=rol');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>

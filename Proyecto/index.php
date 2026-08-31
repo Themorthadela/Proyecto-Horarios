@@ -1,7 +1,11 @@
 <?php
 session_start();
-if (isset($_SESSION['usuario'])) {
+if (isset($_SESSION['admin']) && $_SESSION['admin'] === true) {
     header('Location: Panel_Admin.php');
+    exit;
+}
+if (isset($_SESSION['secretaria']) && $_SESSION['secretaria'] === true) {
+    header('Location: Panel_Secretaria.php');
     exit;
 }
 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -11,6 +15,7 @@ $mensajes = [
     'solicitud' => 'La solicitud venció. Volvé a intentarlo.',
     'sistema' => 'No se pudo iniciar sesión en este momento.',
     'sesion' => 'Tu sesión venció. Iniciá sesión nuevamente.',
+    'rol' => 'Tu usuario no tiene permisos para ingresar al panel de administración.',
 ];
 $error = $mensajes[$_GET['error'] ?? ''] ?? null;
 ?>

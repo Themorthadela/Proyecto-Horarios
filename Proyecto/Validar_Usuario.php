@@ -51,5 +51,12 @@ $_SESSION['usuario'] = [
 $_SESSION['ultimo_acceso'] = $ahora;
 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
+if (!in_array($usuario['Rol'], ['Admin', 'Secretaria', 'Director'], true)) {
+    $_SESSION = [];
+    session_destroy();
+    header('Location: index.php?error=rol');
+    exit;
+}
+
 header('Location: Panel_Admin.php');
 exit;
