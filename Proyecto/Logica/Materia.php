@@ -5,7 +5,6 @@ class Materia {
     private $horasSeguidas;
     private $tipoSalon;
     private $activo;
-    private $area;
 
     public function GetNombre() {
         return $this->nombre;
@@ -47,13 +46,6 @@ class Materia {
         $this->activo = $activo;
     }
 
-    public function GetArea() {
-        return $this->area;
-    }
-    public function SetArea($area) {
-        $this->area = $area;
-    }
-
     public function AgregarMateria() {
         include_once __DIR__ . "/../Persistencia/MateriaBD.php";
         $MateriaBD= new MateriaBD();
@@ -62,8 +54,7 @@ class Materia {
             $this->cargaHoraria,
             $this->horasSeguidas,
             $this->tipoSalon,
-            $this->activo,
-            $this->area
+            $this->activo
             );
     }
 

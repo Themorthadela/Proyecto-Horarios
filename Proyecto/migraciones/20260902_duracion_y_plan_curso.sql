@@ -1,0 +1,13 @@
+ALTER TABLE Curso ADD COLUMN DuracionAnios TINYINT UNSIGNED NOT NULL DEFAULT 1;
+
+CREATE TABLE Curso_Materia (
+    ID_CM INT AUTO_INCREMENT PRIMARY KEY,
+    ID_C INT NOT NULL,
+    ID_M INT NOT NULL,
+    Anio TINYINT UNSIGNED NOT NULL,
+    Periodo ENUM('Anual', 'Semestre 1', 'Semestre 2') NOT NULL DEFAULT 'Anual',
+    UNIQUE KEY uq_curso_materia_periodo (ID_C, ID_M, Anio, Periodo),
+    KEY idx_cm_materia (ID_M),
+    CONSTRAINT fk_cm_curso FOREIGN KEY (ID_C) REFERENCES Curso(ID_C) ON DELETE CASCADE,
+    CONSTRAINT fk_cm_materia FOREIGN KEY (ID_M) REFERENCES Materia(ID_M) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -24,25 +24,8 @@
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" placeholder="Ingrese la cedula del docente" required><br><br>
 
-        <label for="grado">Grado:</label>
-        <input type="number" id="grado" name="grado" required><br><br>
-
-        <label>Área:</label>
-        <?php
-            include_once __DIR__ . "/../Logica/Area.php";
-                $area = new Area();
-                $areas = $area->ListarAreas();
-        ?>
-
-        <select name="area">
-            <option value="">Seleccione un área</option>
-            <?php 
-                foreach ($areas as $a) { ?>
-                <option value="<?php echo $a['ID_A']; ?>">
-                    <?php echo $a['Nombre']; ?>
-                </option>
-            <?php } ?>
-        </select><br><br>
+        <label for="grado">Grado (opcional):</label>
+        <input type="number" id="grado" name="grado" min="1"><br><br>
 
         <input type="submit" name="enviar" value="Crear Docente">
 
@@ -54,8 +37,6 @@ include_once __DIR__ . "/../Logica/Docente.php";
 if (isset($_POST['enviar'])) {
 
     include_once __DIR__ . "/../Logica/Usuario.php";
-    include_once __DIR__ . "/../Logica/Union/Docente_Area.php";
-
     $usuario = new Usuario();
     $usuario->SetNombre($_POST['nombre']);
     $usuario->SetApellido($_POST['apellido']);
@@ -82,24 +63,9 @@ if (isset($_POST['enviar'])) {
 
     $docente = new Docente();
     $docente->SetID_U($id_u);
-    $docente->SetGrado($_POST['grado']);
+    $grado = trim($_POST['grado'] ?? '');
+    $docente->SetGrado($grado === '' ? null : (int) $grado);
     $docente->AgregarDocente();
-
-    $sql = "SELECT d.ID_D FROM Docente d INNER JOIN Usuario u ON d.ID_U = u.ID_U WHERE u.Email = ?";
-    $stmt = $conexion->prepare($sql);
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-
-    $resultado = $stmt->get_result();
-    $fila = $resultado->fetch_assoc();
-
-    $id_d = $fila['ID_D'];
-    $id_a = $_POST['area'];
-
-    $docente_area = new Docente_Area();
-    $docente_area->SetIdDocente($id_d);
-    $docente_area->SetIdArea($id_a);
-    $docente_area->AgregarDocenteArea();
 }
 ?>
 

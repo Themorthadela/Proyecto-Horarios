@@ -12,3 +12,10 @@ if (!isset($_SESSION['usuario'], $_SESSION['ultimo_acceso']) || time() - (int) $
 }
 
 $_SESSION['ultimo_acceso'] = time();
+
+// Las otras páginas con sesión son herramientas de administración.
+if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'MostrarHorarios.php' &&
+    !in_array($_SESSION['usuario']['rol'] ?? '', ['Admin', 'Director', 'Secretaria'], true)) {
+    http_response_code(403);
+    exit('No tenés permisos para acceder a esta página.');
+}

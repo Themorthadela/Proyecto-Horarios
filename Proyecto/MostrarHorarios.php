@@ -1,13 +1,19 @@
 <?php
-require_once __DIR__ . '/Requerir_Sesion.php';
+session_start();
+if (isset($_SESSION['usuario'])) {
+    require_once __DIR__ . '/Requerir_Sesion.php';
+}
 include_once __DIR__ . '/Logica/Curso.php';
 include_once __DIR__ . '/Persistencia/Horario_FinalBD.php';
 
-if (!in_array($_SESSION['usuario']['rol'] ?? '', ['Admin', 'Secretaria', 'Director'], true)) {
-    $_SESSION = [];
-    session_destroy();
-    header('Location: index.php?error=rol');
-    exit;
+$rol = $_SESSION['usuario']['rol'] ?? '';
+$mostrarDocentes = in_array($rol, ['Admin', 'Secretaria', 'Director'], true);
+$esDocente = $rol === 'Docente';
+$idDocente = $mostrarDocentes ? max(0, (int) ($_POST['docente'] ?? $_GET['docente'] ?? 0)) : 0;
+$docentes = [];
+if ($mostrarDocentes) {
+    include_once __DIR__ . '/Logica/Docente.php';
+    $docentes = (new Docente())->ListarDocentes();
 }
 
 $anio = isset($_POST['anio']) ? (int) $_POST['anio'] : (int) date('Y');
@@ -22,13 +28,13 @@ $cursos = $curso->ListarCursos();
 $horarioBD = new Horario_FinalBD();
 
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'mostrar' && $idCurso <= 0) {
-    $error = 'Seleccione un curso para mostrar su horario.';
+if (!$esDocente && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'mostrar' && $idCurso <= 0 && $idDocente <= 0) {
+    $error = $mostrarDocentes ? 'Seleccioná un curso o un docente para mostrar sus horarios.' : 'Seleccione un curso para mostrar su horario.';
 }
 
-if ($idCurso > 0) {
+if ($idCurso > 0 || $esDocente || $idDocente > 0) {
     try {
-        $horarios = $horarioBD->ListarPorCurso($idCurso, $anio);
+        $horarios = $horarioBD->ListarVisiblesPorCurso($idCurso, $anio, $_SESSION['usuario'] ?? [], $idDocente);
     } catch (Throwable $e) {
         $error = $error ?: $e->getMessage();
     }
@@ -40,9 +46,10 @@ $franjas = [];
 foreach ($horarios as $fila) {
     $franja = substr($fila['HoraEntrada'], 0, 5) . ' - ' . substr($fila['HoraSalida'], 0, 5);
     $franjas[$franja] = $fila['HoraEntrada'];
-    $grilla[$franja][(int) $fila['Dia']] = $fila;
+    $grilla[$franja][(int) $fila['Dia']][] = $fila;
 }
 asort($franjas);
+$ultimoDia = max(array_merge([5], array_map(static fn ($fila) => (int) $fila['Dia'], $horarios)));
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -54,13 +61,43 @@ asort($franjas);
     <title>Mostrar horarios</title>
 </head>
 <body>
-    <h1>Mostrar horario</h1>
+    <?php if ($mostrarDocentes): ?>
+        <nav><a href="Panel_Admin.php">Volver al panel</a></nav>
+    <?php endif; ?>
+    <header class="horarios-header">
+        <div>
+            <span class="horarios-eyebrow">Consulta de horarios</span>
+            <h1><?= $esDocente ? 'Mis horarios' : 'Mostrar horario' ?></h1>
+            <p><?= $esDocente ? 'Estos son tus horarios. Podés filtrar por curso y año lectivo.' : ($mostrarDocentes ? 'Seleccioná un docente para ver sus horarios de todos los cursos, o filtrá por curso y año lectivo.' : 'Seleccioná un curso y el año lectivo.') ?></p>
+        </div>
+        <?php if (isset($_SESSION['usuario'])): ?>
+        <a class="boton-cerrar-sesion" href="Cerrar_Sesion.php" aria-label="Cerrar la sesión actual">
+            <span aria-hidden="true">→</span>
+            Cerrar sesión
+        </a>
+        <?php else: ?>
+        <a href="index.php">Iniciar sesión</a>
+        <?php endif; ?>
+    </header>
 
     <form method="post">
+        <?php if ($mostrarDocentes): ?>
+        <label>
+            Docente
+            <select name="docente">
+                <option value="">Todos los docentes</option>
+                <?php foreach ($docentes as $docente): ?>
+                    <option value="<?= (int) $docente['ID_D'] ?>" <?= $idDocente === (int) $docente['ID_D'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($docente['Nombre'] . ' ' . $docente['Apellido'], ENT_QUOTES, 'UTF-8') ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+        <?php endif; ?>
         <label>
             Curso
-            <select name="curso" required>
-                <option value="">Seleccione un curso</option>
+            <select name="curso" <?= ($esDocente || $mostrarDocentes) ? '' : 'required' ?>>
+                <option value=""><?= ($esDocente || $mostrarDocentes) ? 'Todos los cursos' : 'Seleccione un curso' ?></option>
                 <?php foreach ($cursos as $item): ?>
                     <option value="<?= (int) $item['ID_C'] ?>" <?= $idCurso === (int) $item['ID_C'] ? 'selected' : '' ?>>
                         <?= htmlspecialchars($item['Nombre'], ENT_QUOTES, 'UTF-8') ?>
@@ -74,8 +111,6 @@ asort($franjas);
         </label>
         <button type="submit" name="accion" value="mostrar" class="secundario">Mostrar horarios</button>
     </form>
-
-    <a href="Cerrar_Sesion.php">Cerrar sesión</a></header>
 
     <?php if ($mensaje): ?>
         <div class="mensaje <?= $pendientes ? 'advertencia' : '' ?>"><?= htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8') ?></div>
@@ -91,8 +126,8 @@ asort($franjas);
         </ul>
     <?php endif; ?>
 
-    <?php if ($idCurso > 0 && !$horarios && !$error): ?>
-        <p>Todavía no hay un horario generado para este curso y año.</p>
+    <?php if (($idCurso > 0 || $esDocente || $idDocente > 0) && !$horarios && !$error): ?>
+        <p><?= $esDocente ? 'No tenés horarios asignados para este curso y año.' : 'No hay horarios para los filtros seleccionados.' ?></p>
     <?php elseif ($horarios): ?>
         <h2>Horario <?= $anio ?></h2>
         <div class="tabla">
@@ -100,7 +135,7 @@ asort($franjas);
                 <thead>
                     <tr>
                         <th>Hora</th>
-                        <?php for ($dia = 1; $dia <= 5; $dia++): ?>
+                        <?php for ($dia = 1; $dia <= $ultimoDia; $dia++): ?>
                             <th><?= $dias[$dia] ?></th>
                         <?php endfor; ?>
                     </tr>
@@ -109,12 +144,17 @@ asort($franjas);
                     <?php foreach ($franjas as $franja => $orden): ?>
                         <tr>
                             <th><?= htmlspecialchars($franja, ENT_QUOTES, 'UTF-8') ?></th>
-                            <?php for ($dia = 1; $dia <= 5; $dia++): ?>
+                            <?php for ($dia = 1; $dia <= $ultimoDia; $dia++): ?>
                                 <td>
-                                    <?php if (isset($grilla[$franja][$dia])): $celda = $grilla[$franja][$dia]; ?>
+                                    <?php foreach ($grilla[$franja][$dia] ?? [] as $celda): ?>
+                                        <?php if ($esDocente || $idDocente > 0): ?>
+                                            <strong><?= htmlspecialchars($celda['Curso'], ENT_QUOTES, 'UTF-8') ?></strong><br>
+                                        <?php endif; ?>
                                         <?= htmlspecialchars($celda['Materia'], ENT_QUOTES, 'UTF-8') ?>
-                                        <small><?= htmlspecialchars($celda['Docente'], ENT_QUOTES, 'UTF-8') ?></small>
-                                    <?php endif; ?>
+                                        <?php if ($mostrarDocentes): ?>
+                                            <small><?= htmlspecialchars($celda['Docente'], ENT_QUOTES, 'UTF-8') ?></small>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
                                 </td>
                             <?php endfor; ?>
                         </tr>

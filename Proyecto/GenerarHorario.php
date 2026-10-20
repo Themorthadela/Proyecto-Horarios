@@ -4,6 +4,7 @@ include_once __DIR__ . '/Logica/Curso.php';
 include_once __DIR__ . '/Persistencia/Horario_FinalBD.php';
 
 $anio = isset($_POST['anio']) ? (int) $_POST['anio'] : (int) date('Y');
+$anioCurso = (int) ($_POST['anio_curso'] ?? 1);
 $idCurso = isset($_POST['curso']) ? (int) $_POST['curso'] : (isset($_GET['curso']) ? (int) $_GET['curso'] : 0);
 $mensaje = '';
 $error = '';
@@ -12,11 +13,17 @@ $horarios = [];
 
 $curso = new Curso();
 $cursos = $curso->ListarCursos();
+$duracion = 1;
+foreach ($cursos as $item) {
+    if ((int) $item['ID_C'] === $idCurso) {
+        $duracion = max(1, (int) $item['DuracionAnios']);
+    }
+}
 $horarioBD = new Horario_FinalBD();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'generar') {
     try {
-        $pendientes = $horarioBD->GenerarPorCurso($idCurso, $anio);
+        $pendientes = $horarioBD->GenerarPorCurso($idCurso, $anio, $anioCurso);
         $mensaje = $pendientes
             ? 'Se generó un horario parcial. No hubo suficientes bloques para completar toda la carga horaria.'
             : 'Horario generado correctamente.';
@@ -31,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'mostr
 
 if ($idCurso > 0) {
     try {
-        $horarios = $horarioBD->ListarPorCurso($idCurso, $anio);
+        $horarios = $horarioBD->ListarPorCurso($idCurso, $anio, $anioCurso);
     } catch (Throwable $e) {
         $error = $error ?: $e->getMessage();
     }
@@ -63,13 +70,21 @@ asort($franjas);
     <form method="post">
         <label>
             Curso
-            <select name="curso" required>
+            <select name="curso" id="curso" required>
                 <option value="">Seleccione un curso</option>
                 <?php foreach ($cursos as $item): ?>
-                    <option value="<?= (int) $item['ID_C'] ?>" <?= $idCurso === (int) $item['ID_C'] ? 'selected' : '' ?>>
+                    <option value="<?= (int) $item['ID_C'] ?>" data-duracion="<?= max(1, (int) $item['DuracionAnios']) ?>" <?= $idCurso === (int) $item['ID_C'] ? 'selected' : '' ?>>
                         <?= htmlspecialchars($item['Nombre'], ENT_QUOTES, 'UTF-8') ?>
                     </option>
                 <?php endforeach; ?>
+            </select>
+        </label>
+        <label>
+            Año del curso
+            <select name="anio_curso" id="anio_curso" required>
+                <?php for ($nivel = 1; $nivel <= $duracion; $nivel++): ?>
+                    <option value="<?= $nivel ?>" <?= $anioCurso === $nivel ? 'selected' : '' ?>><?= $nivel ?>.º año</option>
+                <?php endfor; ?>
             </select>
         </label>
         <label>
@@ -80,7 +95,10 @@ asort($franjas);
         <button type="submit" name="accion" value="mostrar" class="secundario">Mostrar horarios</button>
     </form>
 
-    <p>Al regenerar se reemplaza solamente el horario del curso y año elegidos.</p>
+    <p>Al regenerar se reemplaza solamente el horario del curso, año del curso y año lectivo elegidos.</p>
+    <?php if ($idCurso > 0): ?>
+        <p><a href="Ingresar_Datos/Crear_Restriccion_Curso.php?curso=<?= $idCurso ?>">Configurar las restricciones horarias de este curso</a>. Sin restricciones guardadas, se utiliza todo el turno del curso.</p>
+    <?php endif; ?>
 
     <?php if ($mensaje): ?>
         <div class="mensaje <?= $pendientes ? 'advertencia' : '' ?>"><?= htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8') ?></div>
@@ -97,9 +115,9 @@ asort($franjas);
     <?php endif; ?>
 
     <?php if ($idCurso > 0 && !$horarios && !$error): ?>
-        <p>Todavía no hay un horario generado para este curso y año.</p>
+        <p>Todavía no hay un horario generado para este curso, año del curso y año lectivo.</p>
     <?php elseif ($horarios): ?>
-        <h2>Horario <?= $anio ?></h2>
+        <h2>Horario de <?= $anioCurso ?>.º año — Año lectivo <?= $anio ?></h2>
         <div class="tabla">
             <table>
                 <thead>
@@ -128,5 +146,20 @@ asort($franjas);
             </table>
         </div>
     <?php endif; ?>
+    <script>
+        const curso = document.getElementById('curso');
+        const anioCurso = document.getElementById('anio_curso');
+        function actualizarAnios() {
+            const duracion = Number(curso.selectedOptions[0]?.dataset.duracion || 1);
+            const seleccionado = Number(anioCurso.value || 1);
+            anioCurso.replaceChildren();
+            for (let nivel = 1; nivel <= duracion; nivel++) {
+                anioCurso.add(new Option(`${nivel}.º año`, nivel, false, nivel === seleccionado));
+            }
+            anioCurso.disabled = !curso.value;
+        }
+        curso.addEventListener('change', actualizarAnios);
+        actualizarAnios();
+    </script>
 </body>
 </html>

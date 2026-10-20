@@ -1,14 +1,12 @@
 <?php
 session_start();
-if (isset($_SESSION['usuario']['rol'])) {
-    if (in_array($_SESSION['usuario']['rol'], ['Admin', 'Secretaria'], true)) {
+if (isset($_SESSION['usuario'], $_SESSION['ultimo_acceso']) && time() - (int) $_SESSION['ultimo_acceso'] <= 1800) {
+    if (in_array($_SESSION['usuario']['rol'] ?? '', ['Admin', 'Secretaria', 'Director'], true)) {
         header('Location: Panel_Admin.php');
         exit;
     }
-    if ($_SESSION['usuario']['rol'] === 'Director') {
-        header('Location: MostrarHorario.php');
-        exit;
-    }
+    header('Location: MostrarHorarios.php');
+    exit;
 }
 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 $mensajes = [
@@ -22,7 +20,7 @@ $mensajes = [
 $error = $mensajes[$_GET['error'] ?? ''] ?? null;
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -40,6 +38,8 @@ $error = $mensajes[$_GET['error'] ?? ''] ?? null;
         <label for="contrasena">Contraseña:</label>
         <input type="password" id="contrasena" name="contrasena" maxlength="72" autocomplete="current-password" required>
         <button type="submit">Ingresar</button>
+        <a class="boton-enlace" href="MostrarHorarios.php">Ver horarios sin registrarte</a>
+        <p>Si sos docente, iniciá sesión para ver tus propios horarios.</p>
     </form>
 
 <?php include 'Estilo/Pie_de_Pagina.php'; ?>

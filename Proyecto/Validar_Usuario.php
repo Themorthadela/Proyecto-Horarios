@@ -54,16 +54,11 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 switch ($usuario['Rol']) {
     case 'Admin':
     case 'Secretaria':
+    case 'Director':
         header('Location: Panel_Admin.php');
         exit;
 
-    case 'Director':
-        header('Location: MostrarHorarios.php');
-        exit;
-
     default:
-        $_SESSION = [];
-        session_destroy();
-        header('Location: index.php?error=rol');
+        header('Location: MostrarHorarios.php');
         exit;
 }

@@ -29,61 +29,8 @@
                 <option value="Laboratorio">Laboratorio</option>
         </select><br><br>
 
-        <label for="area">Tipo de Area:</label>
-        <?php
-            include_once __DIR__ . "/../Logica/Area.php";
-                $area = new Area();
-                $areas = $area->ListarAreas();
-        ?>
-
-        <select name="area">
-            <option value="">Seleccione un área</option>
-            <?php 
-                foreach ($areas as $a) { ?>
-                <option value="<?php echo $a['ID_A']; ?>">
-                    <?php echo $a['Nombre']; ?>
-                </option>
-            <?php } ?>
-        </select><br><br>
-
         <input type="submit" name="enviar" value="Crear Materia">
     </form>
-
-        <form action="" method="post">
-            <h2>Asignar Docente</h2>
-
-            <label for="materia">Materia:</label>
-                <?php
-                    include_once __DIR__ . "/../Logica/Materia.php";
-                    $materia = new Materia();
-                    $materias = $materia->ListarMaterias();
-                ?>
-            <select name="materia" id="materia">
-                <option value="">Seleccione una materia</option>
-                <?php foreach ($materias as $m) { ?>
-                    <option value="<?php echo $m['ID_M']; ?>">
-                        <?php echo $m['Nombre']; ?>
-                    </option>
-                <?php } ?>
-            </select><br><br>
-
-            <label for="docente">Docente:</label>
-                <?php
-                    include_once __DIR__ . "/../Logica/Docente.php";
-                    $docente = new Docente();
-                    $docentes = $docente->ListarDocentes();
-                ?>
-            <select name="docente" id="docente">
-                <option value="">Seleccione un docente</option>
-                <?php foreach ($docentes as $d) { ?>
-                    <option value="<?php echo $d['ID_D']; ?>">
-                        <?php echo $d['Nombre'] . " " . $d['Apellido']; ?>
-                    </option>
-                <?php } ?>
-            </select><br><br>
-
-            <input type="submit" name="asignar" value="Asignar Docente">
-        </form>
 
     <?php
         include_once __DIR__ . "/../Logica/Materia.php";
@@ -94,7 +41,6 @@
             $materia->SetHorasSeguidas($_POST['HorasSeguidas']);
             $materia->SetTipoSalon($_POST['TipoSalon']);
             $materia->SetActivo(true);
-            $materia->SetArea($_POST['area']);
             $materia->AgregarMateria();
         }
 

@@ -6,7 +6,7 @@ include_once __DIR__ . "/../Logica/Restricciones/Restriccion_Curso.php";
 $curso = new Curso();
 $cursos = $curso->ListarCursos();
 
-$cursoSeleccionado = isset($_POST['curso']) ? (int) $_POST['curso'] : 0;
+$cursoSeleccionado = (int) ($_POST['curso'] ?? $_GET['curso'] ?? 0);
 $datosCurso = null;
 $mensajeError = '';
 $mapeoHoras = [];
@@ -40,6 +40,7 @@ if ($cursoSeleccionado > 0) {
         } else {
             $horaEntrada = $datosTurno['HoraEntrada'];
             $horaSalida = $datosTurno['HoraSalida'];
+            $duracionBloque = strcasecmp(trim($datosTurno['Turno']), 'Nocturno') === 0 ? 40 : 45;
 
             $inicio = strtotime($horaEntrada);
             $finCurso = strtotime($horaSalida);
@@ -49,7 +50,7 @@ if ($cursoSeleccionado > 0) {
                 $mensajeError = 'El horario del turno no es válido.';
             } else {
                 while ($inicio < $finCurso) {
-                    $finBloque = $inicio + (45 * 60);
+                    $finBloque = $inicio + ($duracionBloque * 60);
 
                     if ($finBloque > $finCurso) {
                         break;
@@ -218,7 +219,8 @@ if ($cursoSeleccionado > 0) {
             <strong>Horas semanales:</strong> <?php echo (int) $datosCurso['Semanal']; ?><br>
             <strong>Hora de entrada:</strong> <?php echo htmlspecialchars($datosCurso['HoraEntrada'], ENT_QUOTES, 'UTF-8'); ?><br>
             <strong>Hora de salida:</strong> <?php echo htmlspecialchars($datosCurso['HoraSalida'], ENT_QUOTES, 'UTF-8'); ?><br>
-            <strong>Turno:</strong> <?php echo htmlspecialchars($datosCurso['Turno'], ENT_QUOTES, 'UTF-8'); ?>
+            <strong>Turno:</strong> <?php echo htmlspecialchars($datosCurso['Turno'], ENT_QUOTES, 'UTF-8'); ?><br>
+            <strong>Duración de cada bloque:</strong> <?php echo $duracionBloque; ?> minutos
         </p>
 
         <h2 class="titulo-tabla">Tabla de restricciones</h2>

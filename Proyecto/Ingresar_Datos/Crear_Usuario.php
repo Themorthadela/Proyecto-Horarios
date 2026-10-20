@@ -5,12 +5,12 @@ $mensaje = null;
 $tipoMensaje = 'error';
 $rolSesion = $_SESSION['usuario']['rol'] ?? '';
 
-if (!in_array($rolSesion, ['Admin', 'Secretaria'], true)) {
+if (!in_array($rolSesion, ['Admin', 'Secretaria', 'Director'], true)) {
     header('Location: ../index.php?error=rol');
     exit;
 }
 
-$rolesPermitidos = $rolSesion === 'Secretaria'
+$rolesPermitidos = in_array($rolSesion, ['Secretaria', 'Director'], true)
     ? ['Docente', 'Usuario']
     : ['Admin', 'Director', 'Secretaria', 'Docente', 'Usuario'];
 

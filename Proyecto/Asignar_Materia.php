@@ -2,7 +2,6 @@
 require_once __DIR__ . '/Requerir_Sesion.php';
 require_once __DIR__ . '/Logica/Curso.php';
 require_once __DIR__ . '/Logica/Docente.php';
-require_once __DIR__ . '/Logica/Materia.php';
 require_once __DIR__ . '/Logica/Asignacion.php';
 
 if (!isset($_SESSION['csrf_token'])) {
@@ -14,6 +13,20 @@ $tipoMensaje = 'error';
 $cursoSeleccionado = filter_input(INPUT_POST, 'curso', FILTER_VALIDATE_INT) ?: 0;
 $docenteSeleccionado = filter_input(INPUT_POST, 'docente', FILTER_VALIDATE_INT) ?: 0;
 $materiaSeleccionada = filter_input(INPUT_POST, 'materia', FILTER_VALIDATE_INT) ?: 0;
+$curso = new Curso();
+$cursos = $curso->ListarCursos();
+$docentes = (new Docente())->GradoDocente();
+$materiasPorCurso = [];
+
+foreach ($cursos as $itemCurso) {
+    $idCurso = (int) $itemCurso['ID_C'];
+    $materiasPorCurso[$idCurso] = array_map(static function ($materia) {
+        return [
+            'id' => (int) $materia['ID_M'],
+            'nombre' => $materia['Nombre'],
+        ];
+    }, $curso->ListarMateriasPorCurso($idCurso));
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = $_POST['csrf_token'] ?? '';
@@ -21,6 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensaje = 'La solicitud venció. Volvé a intentarlo.';
     } elseif (!$cursoSeleccionado || !$docenteSeleccionado || !$materiaSeleccionada) {
         $mensaje = 'Seleccioná un curso, un docente y una materia válidos.';
+    } elseif (!in_array($materiaSeleccionada, array_column($materiasPorCurso[$cursoSeleccionado] ?? [], 'id'), true)) {
+        $mensaje = 'La materia seleccionada no pertenece al curso.';
     } else {
         try {
             $asignacion = new Asignacion();
@@ -39,10 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
-$cursos = (new Curso())->ListarCursos();
-$docentes = (new Docente())->GradoDocente();
-$materias = (new Materia())->ListarMaterias();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -76,13 +87,47 @@ $materias = (new Materia())->ListarMaterias();
             <?php endforeach; ?>
         </select>
         <label for="materia">Materia:</label>
-        <select id="materia" name="materia" required>
-            <option value="">Seleccione una materia</option>
-            <?php foreach ($materias as $m): ?>
-                <option value="<?php echo (int) $m['ID_M']; ?>" <?php echo $materiaSeleccionada === (int) $m['ID_M'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($m['Nombre'], ENT_QUOTES, 'UTF-8'); ?></option>
-            <?php endforeach; ?>
+        <select id="materia" name="materia" required disabled>
+            <option value="">Primero seleccione un curso</option>
         </select>
+        <small id="estadoMaterias" class="ayuda" aria-live="polite"></small>
         <input type="submit" value="Asignar materia">
     </form>
+    <script>
+        const materiasPorCurso = <?php echo json_encode($materiasPorCurso, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP); ?>;
+        const curso = document.getElementById('curso');
+        const materia = document.getElementById('materia');
+        const estadoMaterias = document.getElementById('estadoMaterias');
+        const materiaSeleccionada = <?php echo json_encode($materiaSeleccionada); ?>;
+
+        function actualizarMaterias(conservarSeleccion = false) {
+            const idCurso = curso.value;
+            const materias = materiasPorCurso[idCurso] || [];
+            materia.innerHTML = '';
+
+            if (!idCurso) {
+                materia.add(new Option('Primero seleccione un curso', ''));
+                materia.disabled = true;
+                estadoMaterias.textContent = '';
+                return;
+            }
+
+            if (materias.length === 0) {
+                materia.add(new Option('Este curso no tiene materias cargadas', ''));
+                materia.disabled = true;
+                estadoMaterias.textContent = 'Agregá materias al plan del curso antes de realizar una asignación.';
+                return;
+            }
+
+            materia.add(new Option('Seleccione una materia', ''));
+            materias.forEach(item => materia.add(new Option(item.nombre, item.id)));
+            materia.disabled = false;
+            materia.value = conservarSeleccion ? String(materiaSeleccionada) : '';
+            estadoMaterias.textContent = `${materias.length} materia${materias.length === 1 ? '' : 's'} disponible${materias.length === 1 ? '' : 's'} para este curso.`;
+        }
+
+        curso.addEventListener('change', () => actualizarMaterias(false));
+        actualizarMaterias(true);
+    </script>
 </body>
 </html>

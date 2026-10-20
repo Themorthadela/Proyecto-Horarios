@@ -4,11 +4,6 @@
 ' CLASES
 ' =====================
 
-class Area {
-  ID_A : int
-  Nombre : string
-}
-
 class Usuario {
   ID_U : int
   Nombre : string
@@ -24,7 +19,7 @@ class Usuario {
 class Docente {
   ID_D : int
   ID_U : int
-  Grado : int
+  Grado : int (opcional)
   
   ID_U (FK) ID_U Usuario
 }
@@ -47,6 +42,17 @@ class Curso {
   Dias : int
   Semanal : int
   Activo : bool
+  DuracionAnios : int
+}
+
+class Curso_Materia {
+  ID_CM : int
+  ID_C : int
+  ID_M : int
+  Anio : int
+  Periodo : enum
+
+  Periodo ('Anual', 'Semestre 1', 'Semestre 2')
 }
 
 class Turno {
@@ -63,7 +69,6 @@ class Turno {
 class HorarioFinal {
   ID_Hc : int
   ID_Am : int
-  ID_C : int
   Año : date
   Dia : int
   HoraEntrada : time
@@ -71,7 +76,6 @@ class HorarioFinal {
   Disponible : bool
 
   ID_Am (FK) ID_Am Asignacion_Materia
-  ID_C (FK) ID_C Curso
 }
 
 class Asignacion_Materia {
@@ -123,33 +127,15 @@ class Docente_Materia {
   ID_M (FK) ID_M Materia
 }
 
-class Docente_Area {
-  ID_Da : int
-  ID_D : int
-  ID_A : int
-  
-  ID_D (FK) ID_D Docente
-  ID_A (FK) ID_A Area
-}
-
-class Curso_Area {
-  ID_Ca : int
-  ID_C : int
-  ID_A : int
-  
-  ID_C (FK) ID_C Curso
-  ID_A (FK) ID_A Area
-}
-
 
 ' =====================
 ' RELACIONES
 ' =====================
 
-Area "1" -- "*" Materia
-
 Curso "1" -- "*" Turno
 Curso "1" -- "*" Restriccion_Curso
+Curso "1" -- "*" Curso_Materia
+Materia "1" -- "*" Curso_Materia
 
 Docente "1" -- "*" Restriccion_Docente 
 Docente -right-|>  Usuario
@@ -161,10 +147,5 @@ Asignacion_Materia "1" -- "1" HorarioFinal
 
 Docente_Materia .. Docente
 Docente_Materia .. Materia
-Docente_Area .. Docente
-Docente_Area .. Area
-Curso_Area .. Curso
-Curso_Area .up. Area
-
 
 @enduml

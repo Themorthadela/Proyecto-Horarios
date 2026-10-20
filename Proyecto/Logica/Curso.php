@@ -5,6 +5,7 @@ class Curso {
     private $dias;
     private $semanal;
     private $activo;
+    private $duracion = 1;
 
     public function GetNombre() {
         return $this->nombre;
@@ -41,6 +42,9 @@ class Curso {
         $this->semanal = $semanal;
     }
 
+    public function GetDuracion() { return $this->duracion; }
+    public function SetDuracion($duracion) { $this->duracion = $duracion; }
+
     public function AgregarCurso() {
         include_once __DIR__ . "/../Persistencia/CursoBD.php";
         $cursoBD = new CursoBD();
@@ -49,8 +53,23 @@ class Curso {
             $this->horas,
             $this->dias,
             $this->semanal,
-            $this->activo
+            $this->activo,
+            $this->duracion
         );
+    }
+
+    public function AgregarCursoCompleto($datosTurno, $materias = []) {
+        include_once __DIR__ . '/../Persistencia/CursoBD.php';
+        return (new CursoBD())->AgregarCompleto([
+            'nombre' => $this->nombre, 'horas' => $this->horas,
+            'dias' => $this->dias, 'semanal' => $this->semanal,
+            'duracion' => $this->duracion
+        ], $datosTurno, $materias);
+    }
+
+    public function ListarMateriasPorCurso($idCurso) {
+        include_once __DIR__ . '/../Persistencia/CursoBD.php';
+        return (new CursoBD())->ListarMateriasPorCurso($idCurso);
     }
 
     public function ListarCursos() {
